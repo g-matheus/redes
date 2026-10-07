@@ -506,6 +506,39 @@ pre code {
     font-size: .9rem;
 }
 
+.page-navigation {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    margin-top: 28px;
+}
+
+.page-nav-link {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+    padding: 6px 0;
+}
+
+.page-nav-next {
+    margin-left: auto;
+    text-align: right;
+}
+
+.page-nav-link>span:last-child {
+    color: var(--accent);
+    font-weight: 650;
+}
+
+.page-nav-direction {
+    color: var(--muted);
+    font-size: .76rem;
+}
+
+.page-nav-link:hover>span:last-child {
+    color: #c2f0ff;
+}
+
 .tag {
     display: inline-block;
     padding: 2px 8px;
@@ -567,6 +600,15 @@ footer {
     .steps,
     .file-grid {
         grid-template-columns: 1fr;
+    }
+
+    .page-navigation {
+        gap: 8px;
+    }
+
+    .page-nav-link {
+        padding: 6px 0;
+        font-size: .9rem;
     }
 
     .panel,
