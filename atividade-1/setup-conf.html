@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Variáveis de domínio, subdomínios e repositório Git usadas pelos scripts da Atividade 1.">
+    <title>setup.conf — Atividade 1</title>
+    <link rel="stylesheet" href="../docs.css">
+    <script src="../bash-highlight.js" defer></script>
+</head>
+
+<body>
+    <div class="topbar">
+        <div class="shell topbar-inner">
+            <a class="brand" href="../index.html"><span class="brand-mark">~/</span> Redes de Computadores</a>
+            <nav aria-label="Navegação principal">
+                <a href="../index.html">Início</a>
+                <details class="activity-menu is-active">
+                    <summary>Atividade 1</summary>
+                    <div class="activity-menu-items">
+                        <a href="index.html">Visão geral</a>
+                        <a href="server-hardening.html">Servidor</a>
+                        <a href="apache2.html">Apache</a>
+                        <a href="tls-apache2.html">HTTPS</a>
+                        <a href="mysql-php.html">PHP e MySQL</a>
+                        <a href="deploy-subdomain1.html">Subdomínio 1</a>
+                        <a href="deploy-subdomain2.html">Subdomínio 2</a>
+                    </div>
+                </details>
+            </nav>
+        </div>
+    </div>
+    <main class="shell">
+        <header class="hero"><span class="eyebrow">Atividade 1 • variáveis dos scripts</span>
+            <h1><code>setup.conf</code></h1>
+            <p class="lead">Domínio e repositório usados pelos scripts. Substitua os exemplos.</p>
+        </header>
+        <div class="layout">
+            <article class="content">
+                <section class="panel">
+                    <h2>Conteúdo gerado</h2>
+                    <div class="code-card">
+                        <div class="code-head"><span>setup.conf</span></div>
+                        <pre><code class="language-bash">DOMAIN_NAME=m7.gs
+SUBDOMAIN1=docs
+SUBDOMAIN2=template
+SUBDOMAIN1_SITE_REPO_URL="https://github.com/g-matheus/redes1.git"</code></pre>
+                    </div>
+                </section>
+                <section class="panel">
+                    <h2>Variáveis, permissões e DNS</h2>
+                    <div class="reference-list">
+                        <div class="reference">
+                            <h3><code>DOMAIN_NAME</code></h3>
+                            <p>É uma variável de configuração Bash: o nome antes de <code>=</code> é a chave e o texto
+                                depois é seu valor; não se colocam espaços ao redor de <code>=</code>. Informe o domínio
+                                sem <code>http://</code>, <code>https://</code> ou caminho, por exemplo
+                                <code>exemplo.com</code>. Os scripts usam esse valor para nomear o VirtualHost (bloco de
+                                configuração de um site no Apache), montar o document root (pasta dos arquivos servidos)
+                                e solicitar o certificado TLS.</p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>SUBDOMAIN1</code> e <code>SUBDOMAIN2</code></h3>
+                            <p>São os rótulos à esquerda do domínio, não incluem o domínio nem pontos. Se o domínio for
+                                <code>exemplo.com</code>, valores <code>blog</code> e <code>api</code> formam
+                                <code>blog.exemplo.com</code> e <code>api.exemplo.com</code>. Os mesmos nomes são usados
+                                nos VirtualHosts e no pedido de certificado.</p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>SUBDOMAIN1_SITE_REPO_URL</code></h3>
+                            <p>Guarda a URL do repositório Git que <code>deploy-subdomain1.sh</code> baixa. Substitua o
+                                endereço de exemplo por uma URL real, normalmente terminada em <code>.git</code>. As
+                                aspas duplas permitem caracteres como <code>/</code>, <code>:</code> e <code>.</code> no
+                                valor sem que sejam interpretados pelo shell. Repositório é o projeto armazenado e
+                                gerenciado pelo Git.</p>
+                        </div>
+                        <div class="reference">
+                            <h3>DNS, registro <code>A</code>, <code>@</code> e <code>www</code></h3>
+                            <p>DNS traduz nomes de domínio em endereços de rede. Crie registros para o domínio principal
+                                e para cada subdomínio, apontando para o IP público da instância. Um registro
+                                <code>A</code> associa um nome a um endereço IPv4; <code>@</code> costuma representar o
+                                domínio raiz no painel DNS; <code>www</code> é um nome adicional que este conjunto de
+                                scripts configura como alias do domínio principal. DNS deve estar propagado antes da
+                                emissão do certificado.</p>
+                        </div>
+                        <div class="reference">
+                            <h3>Permissão <code>640</code></h3>
+                            <p><code>chmod</code> configura permissões de arquivo; os dígitos octais representam dono,
+                                grupo e outros usuários, nessa ordem. Cada dígito soma leitura (<code>4</code>), escrita
+                                (<code>2</code>) e execução (<code>1</code>): <code>6</code> = leitura + escrita;
+                                <code>4</code> = leitura; <code>0</code> = nenhum acesso. Portanto, <code>640</code>
+                                permite ao dono ler e editar, ao grupo ler, e não dá acesso aos demais. A configuração
+                                não precisa ser executável: os scripts a carregam com <code>source</code>.</p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>setup.conf</code> e <code>.git</code></h3>
+                            <p><code>.conf</code> indica um arquivo de configuração lido como comandos de atribuição
+                                pelo Bash; este arquivo define variáveis, não executa instalação por si só. Na URL de
+                                exemplo, <code>https://</code> é o protocolo usado para acessar o host GitHub,
+                                <code>github.com</code> é o domínio do serviço, as barras separam caminhos e
+                                <code>.git</code> identifica o endereço do repositório (não é um arquivo de
+                                configuração).</p>
+                        </div>
+                    </div>
+                </section>
+                <aside class="callout">
+                    <h2>Configure seus domínios</h2>
+                    <p>Use nomes reais e crie registros DNS para domínio, subdomínios e <code>www</code> antes de
+                        solicitar certificados.</p>
+                </aside>
+                <p><a href="index.html">← Voltar à Atividade 1 e à ordem de execução</a></p>
+            </article>
+            <aside class="sidebar">
+                <h2>Arquivos e publicação</h2>
+                <ul>
+                    <li><a href="setup-conf.html" aria-current="page">setup.conf</a></li>
+                    <li><a href="server-hardening.html">server-hardening.sh</a></li>
+                    <li><a href="apache2.html">apache2.sh</a></li>
+                    <li><a href="tls-apache2.html">tls-apache2.sh</a></li>
+                    <li><a href="mysql-php.html">mysql-php.sh</a></li>
+                    <li><a href="deploy-subdomain1.html">deploy-subdomain1.sh</a></li>
+                    <li><a href="deploy-subdomain2.html">Publicação no subdomínio 2</a></li>
+                </ul>
+            </aside>
+        </div>
+    </main>
+    <footer>
+        <div class="shell">Arquivo gerado no diretório atual pelo gerador. Execute a partir de <code>~</code> para
+            encontrá-lo no mesmo local que os scripts.</div>
+    </footer>
+</body>
+
+</html>

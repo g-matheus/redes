@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Script Bash para publicar um repositório no primeiro subdomínio.">
+    <title>Publicação no subdomínio 1 — Atividade 1</title>
+    <link rel="stylesheet" href="../docs.css">
+    <script src="../copy.js" defer></script>
+    <script src="../bash-highlight.js" defer></script>
+</head>
+
+<body>
+    <div class="topbar">
+        <div class="shell topbar-inner">
+            <a class="brand" href="../index.html"><span class="brand-mark">~/</span> Redes de Computadores</a>
+            <nav aria-label="Navegação principal">
+                <a href="../index.html">Início</a>
+                <details class="activity-menu is-active">
+                    <summary>Atividade 1</summary>
+                    <div class="activity-menu-items">
+                        <a href="index.html">Visão geral</a>
+                        <a href="server-hardening.html">Servidor</a>
+                        <a href="apache2.html">Apache</a>
+                        <a href="tls-apache2.html">HTTPS</a>
+                        <a href="mysql-php.html">PHP e MySQL</a>
+                        <a href="deploy-subdomain1.html" aria-current="page">Subdomínio 1</a>
+                        <a href="deploy-subdomain2.html">Subdomínio 2</a>
+                    </div>
+                </details>
+            </nav>
+        </div>
+    </div>
+    <main class="shell">
+        <header class="hero"><span class="eyebrow">Atividade 1 • Subdomínio 1</span>
+            <h1>Publicação no subdomínio 1</h1>
+            <p class="lead">Use o script para clonar o repositório definido em <code>setup.conf</code> no primeiro
+                subdomínio. O Git deve estar instalado no servidor antes da execução.</p>
+        </header>
+        <div class="layout">
+            <article class="content">
+                <section class="panel">
+                    <h2>1. Publique o repositório no subdomínio 1</h2>
+                    <p>Edite <a href="setup-conf.html"><code>SUBDOMAIN1_SITE_REPO_URL</code></a> com a URL do
+                        repositório que deseja publicar. O script clona esse projeto em
+                        <code>/var/www/&lt;subdomínio&gt;.&lt;domínio&gt;</code>, o <code>DocumentRoot</code> do
+                        primeiro subdomínio.
+                    </p>
+                    <div class="code-card">
+                        <div class="code-head"><span>deploy-subdomain1.sh</span><button class="copy-button"
+                                type="button" data-copy-target="script-code">Copiar script</button></div>
+                        <pre><code class="language-bash" id="script-code">#!/bin/bash
+
+set -Eeuo pipefail
+export DEBIAN_FRONTEND=noninteractive
+
+source "$(dirname "$0")/setup.conf"
+FULL_DOMAIN="${SUBDOMAIN1}.${DOMAIN_NAME}"
+WEB_DIR="/var/www/${FULL_DOMAIN}"
+
+echo "==&gt; Cloning repository to ${WEB_DIR}..."
+echo
+git clone "$SUBDOMAIN1_SITE_REPO_URL" "$WEB_DIR"
+echo "==&gt; Done! Application deployed at http://${FULL_DOMAIN}"</code></pre>
+                    </div>
+                </section>
+                <section class="panel">
+                    <h2>Comandos e parâmetros</h2>
+                    <div class="reference-list">
+                        <div class="reference">
+                            <h3>Linhas comuns do Bash</h3>
+                            <p><code>#!/bin/bash</code> seleciona o interpretador Bash. <code>set -Eeuo pipefail</code>
+                                encerra diante de falhas (<code>-e</code>, com exceções do Bash), estende uma eventual
+                                trap <code>ERR</code> a funções e subshells (<code>-E</code>; subshell é um shell filho,
+                                trap é uma ação definida para ocorrer diante de um evento, e este script não define essa
+                                trap), detecta variáveis não definidas (<code>-u</code>) e faz falhar pipelines se
+                                qualquer comando falhar (<code>pipefail</code>; pipeline é uma sequência ligada por
+                                <code>|</code>). <code>export DEBIAN_FRONTEND=noninteractive</code> informa ao APT —
+                                instalador de pacotes do Ubuntu — para não abrir perguntas interativas. O script usa
+                                essa configuração ao instalar Git.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>source "$(dirname "$0")/setup.conf"</code></h3>
+                            <p><code>source</code> executa o arquivo no shell atual para importar as variáveis.
+                                <code>$0</code> contém o caminho usado para chamar o script; <code>dirname</code> obtém
+                                a pasta desse caminho; <code>$(...)</code> substitui o comando pelo resultado. A barra
+                                <code>/</code> junta essa pasta a <code>setup.conf</code>, permitindo localizar a
+                                configuração mesmo quando o script é chamado de outro diretório.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>FULL_DOMAIN</code></h3>
+                            <p>É uma variável do shell: o sinal <code>=</code> atribui um valor sem espaços em volta;
+                                <code>${SUBDOMAIN1}</code> e <code>${DOMAIN_NAME}</code> inserem os valores de
+                                configuração. O ponto separa o rótulo do subdomínio do nome do domínio, formando, por
+                                exemplo, <code>blog.exemplo.com</code>.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>WEB_DIR</code></h3>
+                            <p>Armazena o caminho de destino do site, como <code>/var/www/blog.exemplo.com</code>.
+                                <code>/var/www</code> é o diretório convencional para conteúdo web no Ubuntu; o restante
+                                do caminho é criado com base no domínio completo. O prefixo <code>/</code> indica
+                                caminho absoluto.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>echo</code></h3>
+                            <p>Imprime texto no terminal e termina a linha. As aspas duplas agrupam o texto e permitem
+                                expandir variáveis como <code>${WEB_DIR}</code> e <code>${FULL_DOMAIN}</code>. O
+                                operador <code>&gt;</code> dentro de uma mensagem entre aspas é apenas texto, não
+                                redirecionamento. O comando <code>git clone</code> aparece fora do <code>echo</code> e
+                                por isso é executado.</p>
+                        </div>
+                        <div class="reference">
+                            <h3>Pré-requisito: Git instalado</h3>
+                            <p>O script chama <code>git clone</code>, mas não instala o Git. Se o comando
+                                <code>git</code> ainda não estiver disponível no servidor, instale-o antes com
+                                <code>sudo apt-get install -y git</code>. Execute o script de publicação como
+                                administrador com <code>sudo</code>, conforme a instrução da página inicial.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>git clone</code></h3>
+                            <p><code>git</code> é o sistema de controle de versão; <code>clone</code> baixa uma cópia de
+                                um repositório e seu histórico. O primeiro argumento,
+                                <code>"$SUBDOMAIN1_SITE_REPO_URL"</code>, é a URL do repositório configurada em
+                                <code>setup.conf</code>; o segundo, <code>"$WEB_DIR"</code>, é a pasta de destino. As
+                                aspas preservam cada valor como um único argumento mesmo que contenha caracteres
+                                especiais. O diretório de destino deve ainda não existir ou
+                                estar vazio; Apache pode ter criado essa pasta previamente, caso em que ela precisa
+                                estar vazia.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3>Mensagem final</h3>
+                            <p>O <code>echo</code> informa o endereço montado com <code>${FULL_DOMAIN}</code>.
+                                <code>http://</code> indica HTTP sem TLS; a porta padrão é 80. O VirtualHost criado por
+                                <code>apache2.sh</code> usa <code>/var/www/$FULL_DOMAIN</code> como
+                                <code>DocumentRoot</code>, isto é, a pasta que o Apache serve para esse subdomínio.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3>Relação com este site</h3>
+                            <p>Este script usa Git para baixar o repositório indicado e colocá-lo no primeiro
+                                subdomínio; não copia automaticamente esta pasta local. Para baixar um template e
+                                enviá-lo por SCP ao segundo subdomínio, siga a <a href="deploy-subdomain2.html">página
+                                    de publicação no subdomínio 2</a>.</p>
+                        </div>
+                    </div>
+                </section>
+                <p><a href="index.html">← Voltar à Atividade 1</a></p>
+            </article>
+            <aside class="sidebar">
+                <h2>Arquivos e publicação</h2>
+                <ul>
+                    <li><a href="setup-conf.html">setup.conf</a></li>
+                    <li><a href="server-hardening.html">server-hardening.sh</a></li>
+                    <li><a href="apache2.html">apache2.sh</a></li>
+                    <li><a href="tls-apache2.html">tls-apache2.sh</a></li>
+                    <li><a href="mysql-php.html">mysql-php.sh</a></li>
+                    <li><a href="deploy-subdomain1.html" aria-current="page">deploy-subdomain1.sh</a></li>
+                    <li><a href="deploy-subdomain2.html">Publicação no subdomínio 2</a></li>
+                </ul>
+            </aside>
+        </div>
+    </main>
+    <footer>
+        <div class="shell"></div>
+    </footer>
+</body>
+
+</html>

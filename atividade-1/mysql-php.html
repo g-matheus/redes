@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Script Bash para instalar MySQL e PHP no Apache e criar uma página de teste phpinfo().">
+    <title>PHP e MySQL — Atividade 1</title>
+    <link rel="stylesheet" href="../docs.css">
+    <script src="../copy.js" defer></script>
+    <script src="../bash-highlight.js" defer></script>
+</head>
+
+<body>
+    <div class="topbar">
+        <div class="shell topbar-inner">
+            <a class="brand" href="../index.html"><span class="brand-mark">~/</span> Redes de Computadores</a>
+            <nav aria-label="Navegação principal">
+                <a href="../index.html">Início</a>
+                <details class="activity-menu is-active">
+                    <summary>Atividade 1</summary>
+                    <div class="activity-menu-items">
+                        <a href="index.html">Visão geral</a>
+                        <a href="server-hardening.html">Servidor</a>
+                        <a href="apache2.html">Apache</a>
+                        <a href="tls-apache2.html">HTTPS</a>
+                        <a href="mysql-php.html" aria-current="page">PHP e MySQL</a>
+                        <a href="deploy-subdomain1.html">Subdomínio 1</a>
+                        <a href="deploy-subdomain2.html">Subdomínio 2</a>
+                    </div>
+                </details>
+            </nav>
+        </div>
+    </div>
+    <main class="shell">
+        <header class="hero"><span class="eyebrow">Atividade 1 • PHP e MySQL</span>
+            <h1><code>mysql-php.sh</code></h1>
+            <p class="lead">Instala MySQL e PHP para Apache e cria o arquivo de teste do PHP.</p>
+        </header>
+        <div class="layout">
+            <article class="content">
+                <aside class="callout">
+                    <p><code>phpinfo()</code> expõe detalhes do servidor. Instalação padrão do MySQL, não inclui
+                        configurações de segurança.</p>
+                </aside>
+                <section class="panel">
+                    <h2>Script gerado completo</h2>
+                    <div class="code-card">
+                        <div class="code-head"><span>mysql-php.sh</span><button class="copy-button" type="button"
+                                data-copy-target="script-code">Copiar script</button></div>
+                        <pre><code class="language-bash" id="script-code">#!/bin/bash
+
+set -Eeuo pipefail
+export DEBIAN_FRONTEND=noninteractive
+
+source "$(dirname "$0")/setup.conf"
+
+echo "==&gt; Installing MySQL server..."
+echo
+apt-get install -y mysql-server
+
+echo "==&gt; Installing PHP..."
+echo
+apt-get install -y php libapache2-mod-php php-mysql
+echo "-&gt; Configuring index.php..."
+tee /etc/apache2/mods-enabled/dir.conf &gt; /dev/null &lt;&lt; 'EOF'
+&lt;IfModule mod_dir.c&gt;
+    DirectoryIndex index.php index.html index.cgi index.pl index.xhtml index.htm
+&lt;/IfModule&gt;
+EOF
+tee /var/www/$DOMAIN_NAME/index.php &gt; /dev/null &lt;&lt; 'EOF'
+&lt;?php
+phpinfo();
+?&gt;
+EOF
+echo "==&gt; Done! Restarting server..."
+reboot</code></pre>
+                    </div>
+                </section>
+                <section class="panel">
+                    <h2>Comandos e parâmetros</h2>
+                    <div class="reference-list">
+                        <div class="reference">
+                            <h3>Linhas comuns do Bash e <code>echo</code></h3>
+                            <p><code>#!/bin/bash</code> é o shebang, que seleciona o interpretador Bash.
+                                <code>set -Eeuo pipefail</code> interrompe o script em falhas (<code>-e</code>, com
+                                exceções do Bash), estende uma eventual trap <code>ERR</code> a funções e subshells
+                                (<code>-E</code>; subshell é um shell filho, trap é uma ação definida para ocorrer
+                                diante de um evento, e este script não define essa trap), detecta variáveis não
+                                definidas (<code>-u</code>) e propaga falhas de qualquer comando em um pipeline
+                                (<code>pipefail</code>; pipeline é uma sequência conectada por <code>|</code>).
+                                <code>export DEBIAN_FRONTEND=noninteractive</code> passa ao APT, o instalador de pacotes
+                                do Ubuntu, a preferência por instalações sem perguntas interativas. <code>echo</code>
+                                imprime mensagens; sem texto, apenas cria uma linha em branco.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>source "$(dirname "$0")/setup.conf"</code></h3>
+                            <p><code>source</code> executa o arquivo no shell atual para carregar variáveis.
+                                <code>$0</code> representa o caminho do script; <code>dirname</code> extrai sua pasta e
+                                <code>$(...)</code> substitui o comando pelo resultado. Assim o script encontra
+                                <code>setup.conf</code> junto de si. <code>DOMAIN_NAME</code> guarda o domínio
+                                principal; document root é a pasta de arquivos que o Apache publica para esse domínio.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>apt-get install -y mysql-server</code></h3>
+                            <p><code>apt-get</code> gerencia pacotes do Ubuntu; <code>install</code> solicita instalar o
+                                pacote <code>mysql-server</code>, que fornece o serviço de banco de dados MySQL;
+                                <code>-y</code> confirma automaticamente as perguntas de instalação. Um banco de dados
+                                organiza dados para consulta e atualização.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3>Pacotes PHP</h3>
+                            <p><code>php</code> instala o interpretador/runtime que executa código PHP;
+                                <code>libapache2-mod-php</code> integra esse interpretador ao módulo Apache, para que o
+                                servidor processe arquivos PHP; <code>php-mysql</code> fornece ao PHP a extensão
+                                necessária para conectar ao MySQL. Apache é o servidor HTTP; PHP é uma linguagem
+                                executada no servidor. O sinal <code>-y</code> nas instalações confirma a operação sem
+                                perguntar.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>tee</code> e heredoc com <code>'EOF'</code></h3>
+                            <p><code>tee</code> lê texto da entrada padrão e o grava no caminho indicado.
+                                <code>&gt; /dev/null</code> redireciona a saída de <code>tee</code> para o dispositivo
+                                especial que descarta dados, para não repetir o conteúdo na tela.
+                                <code>&lt;&lt; 'EOF'</code> inicia um heredoc, um bloco de texto encerrado pela linha
+                                isolada <code>EOF</code>. As aspas no marcador impedem que o Bash expanda variáveis ou
+                                execute substituições dentro do bloco. Em
+                                <code>/etc/apache2/mods-enabled/dir.conf</code> o texto altera a ordem de arquivos
+                                iniciais usada pelo módulo de diretórios do Apache; em
+                                <code>/var/www/$DOMAIN_NAME/index.php</code> o Bash expande o domínio no caminho do
+                                arquivo criado.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>DirectoryIndex</code></h3>
+                            <p>É uma diretiva do módulo <code>mod_dir</code> do Apache. Lista, em ordem de preferência,
+                                os nomes que o servidor procura quando o navegador pede uma pasta sem especificar
+                                arquivo. Como <code>index.php</code> aparece primeiro, ele é escolhido antes de
+                                <code>index.html</code> se ambos existirem. Os nomes restantes são alternativas para
+                                outros formatos.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>phpinfo()</code></h3>
+                            <p>É uma função PHP que exibe versão, módulos, caminhos e configurações do interpretador e
+                                do servidor. O arquivo <code>index.php</code> contém as tags <code>&lt;?php</code> e
+                                <code>?&gt;</code>, que delimitam o código PHP; o ponto e vírgula encerra a instrução. A
+                                saída pode revelar informações úteis a um atacante: remova o arquivo de teste depois de
+                                conferir a instalação.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>reboot</code></h3>
+                            <p>Solicita a reinicialização do sistema operacional da instância (máquina virtual). Os
+                                serviços são encerrados e iniciados novamente; a conexão SSH cai. Aguarde a máquina
+                                voltar a responder e reconecte antes de executar o próximo script.</p>
+                        </div>
+                    </div>
+                </section>
+                <p><a href="index.html">← Voltar à Atividade 1</a></p>
+            </article>
+            <aside class="sidebar">
+                <h2>Arquivos e publicação</h2>
+                <ul>
+                    <li><a href="setup-conf.html">setup.conf</a></li>
+                    <li><a href="server-hardening.html">server-hardening.sh</a></li>
+                    <li><a href="apache2.html">apache2.sh</a></li>
+                    <li><a href="tls-apache2.html">tls-apache2.sh</a></li>
+                    <li><a href="mysql-php.html" aria-current="page">mysql-php.sh</a></li>
+                    <li><a href="deploy-subdomain1.html">deploy-subdomain1.sh</a></li>
+                    <li><a href="deploy-subdomain2.html">Publicação no subdomínio 2</a></li>
+                </ul>
+            </aside>
+        </div>
+    </main>
+    <footer>
+        <div class="shell"></div>
+    </footer>
+</body>
+
+</html>

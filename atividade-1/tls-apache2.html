@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Script Bash para emitir certificados HTTPS com Certbot e configurar sua renovação no Apache.">
+    <title>HTTPS com Certbot — Atividade 1</title>
+    <link rel="stylesheet" href="../docs.css">
+    <script src="../copy.js" defer></script>
+    <script src="../bash-highlight.js" defer></script>
+</head>
+
+<body>
+    <div class="topbar">
+        <div class="shell topbar-inner">
+            <a class="brand" href="../index.html"><span class="brand-mark">~/</span> Redes de Computadores</a>
+            <nav aria-label="Navegação principal">
+                <a href="../index.html">Início</a>
+                <details class="activity-menu is-active">
+                    <summary>Atividade 1</summary>
+                    <div class="activity-menu-items">
+                        <a href="index.html">Visão geral</a>
+                        <a href="server-hardening.html">Servidor</a>
+                        <a href="apache2.html">Apache</a>
+                        <a href="tls-apache2.html" aria-current="page">HTTPS</a>
+                        <a href="mysql-php.html">PHP e MySQL</a>
+                        <a href="deploy-subdomain1.html">Subdomínio 1</a>
+                        <a href="deploy-subdomain2.html">Subdomínio 2</a>
+                    </div>
+                </details>
+            </nav>
+        </div>
+    </div>
+    <main class="shell">
+        <header class="hero"><span class="eyebrow">Atividade 1 • HTTPS</span>
+            <h1><code>tls-apache2.sh</code></h1>
+            <p class="lead">Instala Certbot, ativa HTTPS e testa a renovação dos certificados.</p>
+        </header>
+        <div class="layout">
+            <article class="content">
+                <aside class="callout">
+                    <h2>Antes de executar</h2>
+                    <p>Configure DNS para os quatro nomes. O registro do Certbot não inclui e-mail.</p>
+                </aside>
+                <section class="panel">
+                    <h2>Script gerado completo</h2>
+                    <div class="code-card">
+                        <div class="code-head"><span>tls-apache2.sh</span><button class="copy-button" type="button"
+                                data-copy-target="script-code">Copiar script</button></div>
+                        <pre><code class="language-bash" id="script-code">#!/bin/bash
+
+set -Eeuo pipefail
+export DEBIAN_FRONTEND=noninteractive
+
+source "$(dirname "$0")/setup.conf"
+
+echo "==&gt; Configuring TLS ..."
+echo
+echo "-&gt; Installing certbot ..."
+apt install -y certbot python3-certbot-apache
+echo "-&gt; Configuring TLS certificates ..."
+certbot --apache \
+    --non-interactive \
+    --agree-tos \
+    --redirect \
+    --register-unsafely-without-email \
+    -d "$DOMAIN_NAME" \
+    -d "www.$DOMAIN_NAME" \
+    -d "$SUBDOMAIN1.$DOMAIN_NAME" \
+    -d "$SUBDOMAIN2.$DOMAIN_NAME"
+echo "-&gt; Testing certificate renewal ..."
+certbot renew --dry-run
+systemctl reload apache2
+echo
+echo "==&gt; Apache2 installation and TLS configuration completed successfully!"</code></pre>
+                    </div>
+                </section>
+                <section class="panel">
+                    <h2>Comandos e parâmetros</h2>
+                    <div class="reference-list">
+                        <div class="reference">
+                            <h3>Linhas comuns do Bash e <code>echo</code></h3>
+                            <p><code>#!/bin/bash</code> seleciona o interpretador Bash. <code>set -Eeuo pipefail</code>
+                                encerra em falhas (<code>-e</code>, com exceções do Bash), propaga uma eventual trap
+                                <code>ERR</code> a funções e subshells (<code>-E</code>; subshell é um shell filho, trap
+                                é uma ação definida para ocorrer diante de um evento, e este script não define uma trap
+                                <code>ERR</code>), detecta variáveis ausentes (<code>-u</code>) e falhas em qualquer
+                                comando de um pipeline (<code>pipefail</code>; pipeline é a ligação de comandos com
+                                <code>|</code>). <code>export DEBIAN_FRONTEND=noninteractive</code> passa ao APT a
+                                preferência de instalação sem perguntas interativas. <code>echo</code> exibe mensagens
+                                de status; sem argumentos, gera uma linha em branco.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>source</code> e variáveis do domínio</h3>
+                            <p><code>source</code> lê um arquivo no shell atual para disponibilizar as variáveis nele
+                                definidas. O script localiza <code>setup.conf</code> na própria pasta usando
+                                <code>$(dirname "$0")</code>: <code>$0</code> é o caminho de execução,
+                                <code>dirname</code> retorna sua pasta e <code>$(...)</code> substitui o comando pelo
+                                resultado. <code>DOMAIN_NAME</code>, <code>SUBDOMAIN1</code> e <code>SUBDOMAIN2</code>
+                                são variáveis configuradas nesse arquivo.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>apt install -y certbot python3-certbot-apache</code></h3>
+                            <p><code>apt</code> instala pacotes dos repositórios do Ubuntu; <code>install</code> indica
+                                a operação; <code>-y</code> confirma automaticamente. <code>certbot</code> é o cliente
+                                do Let's Encrypt para obter e renovar certificados TLS.
+                                <code>python3-certbot-apache</code> é a integração do Certbot com Apache, usada para
+                                localizar e ajustar os VirtualHosts.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>certbot --apache</code></h3>
+                            <p>Executa o Certbot com o plugin Apache. Ele solicita certificados à autoridade
+                                certificadora Let's Encrypt, comprova que o servidor controla cada nome de domínio e
+                                configura os VirtualHosts para usar os certificados. TLS é o protocolo criptográfico que
+                                protege a conexão HTTPS; HTTPS é HTTP protegido por TLS. Um certificado associa os nomes
+                                solicitados à chave pública do servidor. DNS (Sistema de Nomes de Domínio) traduz esses
+                                nomes para endereços IP. A validação HTTP depende de DNS correto e acesso externo ao
+                                servidor.</p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>--non-interactive</code> e <code>--agree-tos</code></h3>
+                            <p><code>--non-interactive</code> impede perguntas durante a execução;
+                                <code>--agree-tos</code> registra a aceitação dos termos de serviço da autoridade
+                                certificadora. São opções longas do Certbot; os dois hífens fazem parte da sintaxe.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>--redirect</code></h3>
+                            <p>Pede ao plugin Apache para configurar um redirecionamento HTTP para HTTPS: pedidos sem
+                                criptografia na porta 80 recebem uma resposta que leva o navegador à versão HTTPS,
+                                normalmente na porta 443. Um redirecionamento não substitui a abertura das portas na
+                                nuvem e no firewall do servidor.</p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>--register-unsafely-without-email</code></h3>
+                            <p>Registra a conta do Certbot sem endereço de e-mail. A opção “unsafely” alerta que a
+                                autoridade não terá como enviar avisos de expiração ou problemas da conta. A renovação
+                                automática continua sendo configurada, mas o operador precisa acompanhar se ela
+                                funciona.</p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>-d</code></h3>
+                            <p><code>-d</code> (abreviação de <code>--domains</code>) adiciona um nome DNS ao pedido;
+                                pode ser repetido. “Hostname” é o nome de um host na rede, como
+                                <code>blog.exemplo.com</code>. O certificado pedido cobre <code>DOMAIN_NAME</code>,
+                                <code>www.DOMAIN_NAME</code> e os dois subdomínios. Todos precisam resolver para o IP
+                                público e estar configurados no Apache.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>certbot renew --dry-run</code></h3>
+                            <p><code>renew</code> tenta renovar certificados próximos do vencimento;
+                                <code>--dry-run</code> executa um ensaio contra o ambiente de testes da autoridade
+                                certificadora, sem substituir os certificados de produção. É uma simulação de fluxo de
+                                renovação, não uma renovação real.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>systemctl reload apache2</code></h3>
+                            <p><code>systemctl</code> envia uma ação ao gerenciador de serviços <code>systemd</code>;
+                                <code>reload</code> pede ao serviço <code>apache2</code> para reler configurações sem
+                                encerrar e iniciar todo o processo. Isso não reinicia o servidor nem a instância na
+                                nuvem.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+                <p><a href="index.html">← Voltar à Atividade 1</a></p>
+            </article>
+            <aside class="sidebar">
+                <h2>Arquivos e publicação</h2>
+                <ul>
+                    <li><a href="setup-conf.html">setup.conf</a></li>
+                    <li><a href="server-hardening.html">server-hardening.sh</a></li>
+                    <li><a href="apache2.html">apache2.sh</a></li>
+                    <li><a href="tls-apache2.html" aria-current="page">tls-apache2.sh</a></li>
+                    <li><a href="mysql-php.html">mysql-php.sh</a></li>
+                    <li><a href="deploy-subdomain1.html">deploy-subdomain1.sh</a></li>
+                    <li><a href="deploy-subdomain2.html">Publicação no subdomínio 2</a></li>
+                </ul>
+            </aside>
+        </div>
+    </main>
+    <footer>
+        <div class="shell"></div>
+    </footer>
+</body>
+
+</html>

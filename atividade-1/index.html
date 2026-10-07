@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description"
+        content="Documentação da Atividade 1 de Redes e Serviços Web: scripts Bash para configurar Apache, PHP, MySQL, DNS e HTTPS na Oracle Cloud.">
+    <title>Atividade 1 — Redes de Computadores</title>
+    <link rel="stylesheet" href="../docs.css">
+    <script src="../copy.js" defer></script>
+    <script src="../bash-highlight.js" defer></script>
+</head>
+
+<body>
+    <div class="topbar">
+        <div class="shell topbar-inner">
+            <a class="brand" href="../index.html"><span class="brand-mark">~/</span> Redes de Computadores</a>
+            <nav aria-label="Navegação principal">
+                <a href="../index.html">Início</a>
+                <details class="activity-menu is-active">
+                    <summary>Atividade 1</summary>
+                    <div class="activity-menu-items">
+                        <a href="index.html" aria-current="page">Visão geral</a>
+                        <a href="server-hardening.html">Servidor</a>
+                        <a href="apache2.html">Apache</a>
+                        <a href="tls-apache2.html">HTTPS</a>
+                        <a href="mysql-php.html">PHP e MySQL</a>
+                        <a href="deploy-subdomain1.html">Subdomínio 1</a>
+                        <a href="deploy-subdomain2.html">Subdomínio 2</a>
+                    </div>
+                </details>
+            </nav>
+        </div>
+    </div>
+
+    <main class="shell">
+        <header class="hero">
+            <span class="eyebrow">Atividade 1 • Servidor LAMP</span>
+            <h1>Servidor web completo (LAMP) usando shell scripts</h1>
+            <p class="lead">Script preparado para a imagem Canonical Ubuntu 24.04, build 2026.09.18-0, na Oracle Cloud
+                Infrastructure (OCI).</p>
+        </header>
+
+        <div class="layout">
+            <article class="content">
+                <section class="panel" id="visao-geral">
+                    <p class="muted">O <a href="#script-principal">script completo</a> cria cinco scripts e
+                        <code>setup.conf</code> em <code>~</code>. Consulte também as páginas de publicação dos dois
+                        subdomínios:
+                    </p>
+                    <div class="file-grid">
+                        <a class="file-link" href="setup-conf.html"><code>setup.conf</code><span>Domínio, subdomínio e
+                                repositório.</span></a>
+                        <a class="file-link" href="server-hardening.html"><code>server-hardening.sh</code><span>SSH,
+                                firewall e atualizações.</span></a>
+                        <a class="file-link" href="apache2.html"><code>apache2.sh</code><span>Apache e
+                                VirtualHosts.</span></a>
+                        <a class="file-link" href="tls-apache2.html"><code>tls-apache2.sh</code><span>Certificados com
+                                Certbot.</span></a>
+                        <a class="file-link" href="mysql-php.html"><code>mysql-php.sh</code><span>MySQL e
+                                PHP.</span></a>
+                        <a class="file-link" href="deploy-subdomain1.html"><code>deploy-subdomain1.sh</code><span>Clona
+                                o site no primeiro subdomínio.</span></a>
+                        <a class="file-link"
+                            href="deploy-subdomain2.html"><code>Publicação no subdomínio 2</code><span>Envia um template
+                                web via SCP.</span></a>
+                    </div>
+                </section>
+
+                <section class="panel" id="pre-requisitos">
+                    <h2>Preparação</h2>
+                    <p>Tenha Ubuntu Server, acesso SSH com <code>sudo</code>, IP público e domínio. Aponte os
+                        registros DNS do domínio, <code>www</code> e dos dois subdomínios para o IP público do
+                        servidor. Libere as portas TCP <code>80</code>/<code>443</code> na Oracle Cloud
+                        Infrastructure.</p>
+                    <p>Edite <a href="setup-conf.html"><code>setup.conf</code></a> com seus domínios e URL Git.</p>
+                </section>
+
+                <section class="panel" id="executar">
+                    <h2>Gere os scripts a partir da home (~)</h2>
+                    <p>Via SSH, crie <code>~/generate-scripts.sh</code> com o script abaixo. No nano, salve com
+                        <kbd>Ctrl</kbd>+<kbd>O</kbd> e saia com <kbd>Ctrl</kbd>+<kbd>X</kbd>.
+                    </p>
+                    <ol class="steps">
+                        <li><strong>Acesse a home</strong><span>Execute <code>cd ~</code>.</span></li>
+                        <li><strong>Crie o gerador</strong><span>Execute <code>nano generate-scripts.sh</code> e cole o
+                                script.</span></li>
+                        <li><strong>Gere os arquivos</strong><span>Execute <code>bash ~/generate-scripts.sh</code>, sem
+                                <code>sudo</code>.</span></li>
+                        <li><strong>Edite a configuração</strong><span>Atualize <code>~/setup.conf</code>.</span></li>
+                    </ol>
+                    <div class="code-card">
+                        <div class="code-head"><span>Comandos para preparar os arquivos na home</span><span
+                                class="tag">terminal</span></div>
+                        <pre><code class="language-bash">cd ~
+nano generate-scripts.sh
+# Cole e salve o script gerador completo
+bash ~/generate-scripts.sh
+nano ~/setup.conf</code></pre>
+                    </div>
+                    <p>Depois, execute cada script gerado com <code>sudo</code>.</p>
+                    <div class="code-card">
+                        <div class="code-head"><span>Ordem sugerida após editar setup.conf</span><span
+                                class="tag">executar da home</span></div>
+                        <pre><code class="language-bash">cd ~
+sudo ./server-hardening.sh
+# Aguarde a reinicialização e reconecte via SSH:
+sudo ./apache2.sh
+# Aguarde a reinicialização e reconecte via SSH:
+sudo ./tls-apache2.sh
+sudo ./mysql-php.sh
+# Aguarde a reinicialização e reconecte via SSH:
+sudo ./deploy-subdomain1.sh</code></pre>
+                    </div>
+                    <p class="muted">Mantenha os scripts e <code>setup.conf</code> no mesmo diretório.
+                    </p>
+                    <p><code>server-hardening.sh</code>, <code>apache2.sh</code> e <code>mysql-php.sh</code>
+                        reiniciam o servidor. Aguarde a máquina voltar e reconecte via SSH antes do próximo script.
+                        <code>tls-apache2.sh</code> apenas recarrega o Apache.
+                    </p>
+                </section>
+
+                <section class="panel" id="script-principal">
+                    <h2>Script gerador completo</h2>
+                    </p>
+                    <div class="code-card">
+                        <div class="code-head">
+                            <span>generate-scripts.sh</span>
+                            <button class="copy-button" type="button" data-copy-target="generator-code">Copiar
+                                script</button>
+                        </div>
+                        <pre><code class="language-bash" id="generator-code">#!/bin/bash
+# Oracle Cloud Canonical Ubuntu 24.04 Image 2026.09.18-0 setup
+# 1) Open ports 443 and 80 on Oracle Cloud Infrastructure:
+#       Primary VNIC -&gt; Subnet -&gt; Security List -&gt; Security Rules -&gt; Add Ingress Rule
+# 2) Set DNS records:
+#       Name      Type   Content
+#       @         A      Server IP
+#       www       A      Server IP
+#       docs      A      Server IP
+#       template  A      Server IP
+
+set -Eeuo pipefail
+export DEBIAN_FRONTEND=noninteractive
+
+echo "==&gt; Generating scripts..."
+echo "-&gt; Generating setup.conf..."
+cat &lt;&lt; 'OUTER_EOF' &gt; setup.conf
+DOMAIN_NAME=m7.gs
+SUBDOMAIN1=docs
+SUBDOMAIN2=template
+SUBDOMAIN1_SITE_REPO_URL="https://github.com/g-matheus/redes.git"
+OUTER_EOF
+chmod 640 setup.conf
+
+# ========================================
+# Updates and firewall
+echo "-&gt; Generating server-hardening.sh..."
+cat &lt;&lt; 'OUTER_EOF' &gt; server-hardening.sh
+#!/bin/bash
+
+set -Eeuo pipefail
+export DEBIAN_FRONTEND=noninteractive
+
+echo "==&gt; Updating packages..."
+echo
+apt-get update
+apt-get upgrade -y
+echo
+echo "==&gt; Configuring automatic updates..."
+echo
+apt-get install -y unattended-upgrades
+cat &gt; /etc/apt/apt.conf.d/20auto-upgrades &lt;&lt;'EOF'
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+EOF
+systemctl enable --now apt-daily.timer
+systemctl enable --now apt-daily-upgrade.timer
+echo
+echo "==&gt; Configuring SSH hardening..."
+echo
+sed -i -E "s/^#?PasswordAuthentication.*/PasswordAuthentication no/" "/etc/ssh/sshd_config"
+sed -i -E "s/^#?PermitRootLogin.*/PermitRootLogin no/" "/etc/ssh/sshd_config"
+sed -i -E "s/^#?X11Forwarding.*/X11Forwarding no/" "/etc/ssh/sshd_config"
+echo
+echo "==&gt; Configuring Firewall (UFW)..."
+echo
+apt-get install -y ufw
+ufw default deny incoming
+ufw default allow outgoing
+ufw limit ssh
+ufw --force enable
+echo
+echo "==&gt; Restarting SSH service..."
+echo
+systemctl restart ssh
+echo
+echo "==&gt; Installing Fail2ban..."
+echo
+export PYTHONWARNINGS="ignore::SyntaxWarning"
+apt-get install -y fail2ban
+systemctl enable --now fail2ban
+unset PYTHONWARNINGS
+echo
+echo "==&gt; Done! Restarting server ..."
+reboot
+OUTER_EOF
+chmod 740 server-hardening.sh
+
+# ========================================
+# Apache
+echo "-&gt; Generating apache2.sh..."
+cat &lt;&lt; 'OUTER_EOF' &gt; apache2.sh
+#!/bin/bash
+
+set -Eeuo pipefail
+export DEBIAN_FRONTEND=noninteractive
+
+source "$(dirname "$0")/setup.conf"
+
+echo "==&gt; Installing Apache2 ..."
+echo
+apt-get install -y apache2
+echo "-&gt; Configuring global ServerName ..."
+tee /etc/apache2/conf-available/servername.conf &gt; /dev/null &lt;&lt;EOF
+ServerName $DOMAIN_NAME
+EOF
+a2enconf servername
+systemctl reload apache2
+echo "==&gt; Allowing ports 80 and 443 in UFW for Apache2 ..."
+echo
+ufw allow in "Apache Full"
+echo
+echo
+echo "==&gt; Configuring sites in Apache2 ..."
+echo
+echo "-&gt; Removing default Apache sites ..."
+a2dissite 000-default.conf default-ssl.conf
+rm -f /etc/apache2/sites-available/000-default.conf
+rm -f /etc/apache2/sites-available/default-ssl.conf
+rm -rf /var/www/html
+echo "-&gt; Configuring $DOMAIN_NAME ..."
+mkdir -p "/var/www/$DOMAIN_NAME"
+tee "/etc/apache2/sites-available/$DOMAIN_NAME.conf" &gt; /dev/null &lt;&lt;EOF
+&lt;VirtualHost *:80&gt;
+    ServerName $DOMAIN_NAME
+    ServerAlias www.$DOMAIN_NAME
+    DocumentRoot /var/www/$DOMAIN_NAME
+
+    ErrorLog \${APACHE_LOG_DIR}/${DOMAIN_NAME}_error.log
+    CustomLog \${APACHE_LOG_DIR}/${DOMAIN_NAME}_access.log combined
+&lt;/VirtualHost&gt;
+EOF
+echo "-&gt; Configuring $SUBDOMAIN1.$DOMAIN_NAME ..."
+mkdir -p "/var/www/$SUBDOMAIN1.$DOMAIN_NAME"
+tee "/etc/apache2/sites-available/$SUBDOMAIN1.$DOMAIN_NAME.conf" &gt; /dev/null &lt;&lt;EOF
+&lt;VirtualHost *:80&gt;
+    ServerName $SUBDOMAIN1.$DOMAIN_NAME
+    DocumentRoot /var/www/$SUBDOMAIN1.$DOMAIN_NAME
+
+    ErrorLog \${APACHE_LOG_DIR}/${SUBDOMAIN1}.${DOMAIN_NAME}_error.log
+    CustomLog \${APACHE_LOG_DIR}/${SUBDOMAIN1}.${DOMAIN_NAME}_access.log combined
+&lt;/VirtualHost&gt;
+EOF
+echo "-&gt; Configuring $SUBDOMAIN2.$DOMAIN_NAME ..."
+mkdir -p "/var/www/$SUBDOMAIN2.$DOMAIN_NAME"
+tee "/etc/apache2/sites-available/$SUBDOMAIN2.$DOMAIN_NAME.conf" &gt; /dev/null &lt;&lt;EOF
+&lt;VirtualHost *:80&gt;
+    ServerName $SUBDOMAIN2.$DOMAIN_NAME
+    DocumentRoot /var/www/$SUBDOMAIN2.$DOMAIN_NAME
+
+    ErrorLog \${APACHE_LOG_DIR}/${SUBDOMAIN2}.${DOMAIN_NAME}_error.log
+    CustomLog \${APACHE_LOG_DIR}/${SUBDOMAIN2}.${DOMAIN_NAME}_access.log combined
+&lt;/VirtualHost&gt;
+EOF
+echo "-&gt; Enabling sites ..."
+a2ensite "$DOMAIN_NAME.conf"
+a2ensite "$SUBDOMAIN1.$DOMAIN_NAME.conf"
+a2ensite "$SUBDOMAIN2.$DOMAIN_NAME.conf"
+echo "-&gt; Testing Apache configuration ..."
+apache2ctl configtest
+echo
+echo "==&gt; Done! Restarting server ..."
+reboot
+OUTER_EOF
+chmod 740 apache2.sh
+
+# ========================================
+# TLS
+echo "-&gt; Generating tls-apache2.sh..."
+cat &lt;&lt; 'OUTER_EOF' &gt; tls-apache2.sh
+#!/bin/bash
+
+set -Eeuo pipefail
+export DEBIAN_FRONTEND=noninteractive
+
+source "$(dirname "$0")/setup.conf"
+
+echo "==&gt; Configuring TLS ..."
+echo
+echo "-&gt; Installing certbot ..."
+apt install -y certbot python3-certbot-apache
+echo "-&gt; Configuring TLS certificates ..."
+certbot --apache \
+    --non-interactive \
+    --agree-tos \
+    --redirect \
+    --register-unsafely-without-email \
+    -d "$DOMAIN_NAME" \
+    -d "www.$DOMAIN_NAME" \
+    -d "$SUBDOMAIN1.$DOMAIN_NAME" \
+    -d "$SUBDOMAIN2.$DOMAIN_NAME"
+echo "-&gt; Testing certificate renewal ..."
+certbot renew --dry-run
+systemctl reload apache2
+echo
+echo "==&gt; Apache2 installation and TLS configuration completed successfully!"
+OUTER_EOF
+chmod 740 tls-apache2.sh
+
+# ========================================
+# MySQL and PHP
+
+echo "-&gt; Generating mysql-php.sh..."
+cat &lt;&lt; 'OUTER_EOF' &gt; mysql-php.sh
+#!/bin/bash
+
+set -Eeuo pipefail
+export DEBIAN_FRONTEND=noninteractive
+
+source "$(dirname "$0")/setup.conf"
+
+echo "==&gt; Installing MySQL server..."
+echo
+apt-get install -y mysql-server
+
+echo "==&gt; Installing PHP..."
+echo
+apt-get install -y php libapache2-mod-php php-mysql
+echo "-&gt; Configuring index.php..."
+tee /etc/apache2/mods-enabled/dir.conf &gt; /dev/null &lt;&lt; 'EOF'
+&lt;IfModule mod_dir.c&gt;
+    DirectoryIndex index.php index.html index.cgi index.pl index.xhtml index.htm
+&lt;/IfModule&gt;
+EOF
+tee /var/www/$DOMAIN_NAME/index.php &gt; /dev/null &lt;&lt; 'EOF'
+&lt;?php
+phpinfo();
+?&gt;
+EOF
+echo "==&gt; Done! Restarting server..."
+reboot
+OUTER_EOF
+chmod 740 mysql-php.sh
+
+# ========================================
+# Deploy site on subdomain1
+
+echo "-&gt; Generating deploy-subdomain1.sh..."
+cat &lt;&lt; 'OUTER_EOF' &gt; deploy-subdomain1.sh
+#!/bin/bash
+
+set -Eeuo pipefail
+export DEBIAN_FRONTEND=noninteractive
+
+source "$(dirname "$0")/setup.conf"
+FULL_DOMAIN="${SUBDOMAIN1}.${DOMAIN_NAME}"
+WEB_DIR="/var/www/${FULL_DOMAIN}"
+
+echo "==&gt; Cloning repository to ${WEB_DIR}..."
+echo
+git clone "$SUBDOMAIN1_SITE_REPO_URL" "$WEB_DIR"
+echo "==&gt; Done! Application deployed at http://${FULL_DOMAIN}"
+OUTER_EOF
+chmod 740 deploy-subdomain1.sh
+
+# ========================================
+echo "==&gt; Setup scripts generated successfully!"
+echo "-&gt; Next step: run them with root privileges (e.g., sudo ./server-hardening.sh)"
+</code></pre>
+                    </div>
+                </section>
+
+                <section class="panel" id="como-funciona">
+                    <h2>Como o script gerador funciona</h2>
+                    <p>Cria cinco scripts e <code>setup.conf</code> na pasta atual. Não instala LAMP nem publica o site.
+                    </p>
+                    <div class="reference-list">
+                        <div class="reference">
+                            <h3><code>#!/bin/bash</code> e comentários <code>#</code></h3>
+                            <p>A primeira linha é o shebang: indica ao sistema que o arquivo deve ser interpretado pelo
+                                Bash, o shell de comandos usado aqui. Nas linhas seguintes, <code>#</code> inicia um
+                                comentário, que serve para leitura humana e não é executado. A exceção é o shebang na
+                                primeira linha, que informa qual interpretador usar ao executar o arquivo diretamente.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>set -Eeuo pipefail</code></h3>
+                            <p><code>set</code> ajusta opções do Bash. <code>-e</code> encerra após falha de um comando,
+                                com exceções em alguns contextos; <code>-E</code> faz o tratamento de erros
+                                <code>ERR</code> também valer em funções e subshells; <code>-u</code> trata variável não
+                                definida como erro; <code>pipefail</code> faz uma sequência ligada por <code>|</code>
+                                falhar se qualquer comando nela falhar, em vez de considerar só o último. Um subshell é
+                                um processo de shell filho.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>export DEBIAN_FRONTEND=noninteractive</code></h3>
+                            <p><code>export</code> marca uma variável para que comandos iniciados pelo shell também a
+                                recebam. <code>DEBIAN_FRONTEND</code> é consultada por ferramentas de instalação
+                                Debian/Ubuntu; <code>noninteractive</code> pede que não abram perguntas interativas
+                                durante a instalação. APT é o sistema que instala e atualiza pacotes do Ubuntu.</p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>cat &lt;&lt; 'OUTER_EOF' &gt; arquivo</code></h3>
+                            <p><code>cat</code> copia para a saída o texto que recebe. <code>&lt;&lt;</code> inicia um
+                                heredoc (“here document”), um bloco de texto fornecido como entrada até encontrar uma
+                                linha isolada igual ao marcador. As aspas em <code>'OUTER_EOF'</code> fazem o conteúdo
+                                ser gravado literalmente: variáveis como <code>$DOMAIN_NAME</code> não são expandidas
+                                enquanto o gerador roda. <code>&gt;</code> redireciona a saída para um arquivo,
+                                criando-o ou substituindo seu conteúdo. O marcador é escolhido para não confundir o
+                                shell externo com heredocs dentro dos scripts que estão sendo gravados.</p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>OUTER_EOF</code> e <code>EOF</code></h3>
+                            <p>São marcadores de encerramento de heredoc, escolhidos pelo autor e escritos sozinhos na
+                                linha final. <code>OUTER_EOF</code> encerra os blocos usados pelo gerador para escrever
+                                cada script; <code>EOF</code> aparece no conteúdo gerado e será interpretado somente
+                                quando aquele script for executado. Em heredoc sem aspas no marcador, o Bash expande
+                                variáveis e substituições de comando; com aspas, preserva o texto literalmente.</p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>chmod 640</code> e <code>chmod 740</code></h3>
+                            <p><code>setup.conf</code>: leitura/escrita do dono e leitura do grupo (<code>640</code>).
+                                <code>chmod</code> altera permissões; cada dígito octal corresponde a dono, grupo e
+                                outros. Os valores combinam leitura (<code>4</code>), escrita (<code>2</code>) e
+                                execução (<code>1</code>). <code>640</code> significa dono ler/escrever, grupo ler e
+                                outros sem acesso. <code>740</code> significa dono ler/escrever/executar, grupo ler e
+                                outros sem acesso. A permissão de execução permite iniciar os arquivos de script
+                                diretamente; <code>setup.conf</code> apenas é lido pelos scripts e não precisa ser
+                                executável.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>echo</code> e diretório de saída</h3>
+                            <p><code>echo</code> imprime uma mensagem e uma quebra de linha no terminal; as mensagens
+                                informam o progresso, não executam os comandos que aparecem no texto. Os
+                                redirecionamentos de <code>cat</code> criam os arquivos na pasta de trabalho atual, isto
+                                é, a pasta em que o terminal está posicionado. <code>cd</code> muda essa pasta;
+                                <code>~</code> é uma abreviação da pasta pessoal do usuário. Por isso as instruções
+                                executam <code>cd ~</code> antes de gerar os arquivos.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>bash</code>, <code>nano</code>, <code>sudo</code> e <code>./</code></h3>
+                            <p><code>nano</code> é um editor de texto no terminal; salve com
+                                <kbd>Ctrl</kbd>+<kbd>O</kbd> e saia com <kbd>Ctrl</kbd>+<kbd>X</kbd>.
+                                <code>bash ~/generate-scripts.sh</code> inicia o interpretador Bash e pede que ele leia
+                                esse arquivo; o til aponta para a pasta pessoal. <code>sudo</code> executa o comando
+                                seguinte com privilégios administrativos (root), necessários para instalar pacotes e
+                                alterar configurações do sistema. <code>./server-hardening.sh</code> significa executar
+                                o arquivo na pasta atual: <code>.</code> representa a pasta atual e <code>/</code>
+                                separa o diretório do nome. O comando deve ser executado depois de entrar na pasta dos
+                                scripts.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+            </article>
+            <aside class="sidebar">
+                <h2>Nesta página</h2>
+                <ul>
+                    <li><a href="#visao-geral">Scripts</a></li>
+                    <li><a href="#pre-requisitos">Preparação</a></li>
+                    <li><a href="#executar">Gerar e executar</a></li>
+                    <li><a href="#script-principal">Script gerador</a></li>
+                    <li><a href="#como-funciona">Como funciona</a></li>
+                </ul>
+                <h2 style="margin-top:18px">Arquivos e publicação</h2>
+                <ul>
+                    <li><a href="setup-conf.html">setup.conf</a></li>
+                    <li><a href="server-hardening.html">server-hardening.sh</a></li>
+                    <li><a href="apache2.html">apache2.sh</a></li>
+                    <li><a href="tls-apache2.html">tls-apache2.sh</a></li>
+                    <li><a href="mysql-php.html">mysql-php.sh</a></li>
+                    <li><a href="deploy-subdomain1.html">deploy-subdomain1.sh</a></li>
+                    <li><a href="deploy-subdomain2.html">Publicação no subdomínio 2</a></li>
+                </ul>
+            </aside>
+        </div>
+    </main>
+    <footer>
+        <div class="shell">Atividade Prática – Redes de Computadores • Documentação.</div>
+    </footer>
+</body>
+
+</html>

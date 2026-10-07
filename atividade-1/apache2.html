@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Script Bash para instalar Apache e configurar o domínio e dois subdomínios com VirtualHosts.">
+    <title>Apache e VirtualHosts — Atividade 1</title>
+    <link rel="stylesheet" href="../docs.css">
+    <script src="../copy.js" defer></script>
+    <script src="../bash-highlight.js" defer></script>
+</head>
+
+<body>
+    <div class="topbar">
+        <div class="shell topbar-inner">
+            <a class="brand" href="../index.html"><span class="brand-mark">~/</span> Redes de Computadores</a>
+            <nav aria-label="Navegação principal">
+                <a href="../index.html">Início</a>
+                <details class="activity-menu is-active">
+                    <summary>Atividade 1</summary>
+                    <div class="activity-menu-items">
+                        <a href="index.html">Visão geral</a>
+                        <a href="server-hardening.html">Servidor</a>
+                        <a href="apache2.html" aria-current="page">Apache</a>
+                        <a href="tls-apache2.html">HTTPS</a>
+                        <a href="mysql-php.html">PHP e MySQL</a>
+                        <a href="deploy-subdomain1.html">Subdomínio 1</a>
+                        <a href="deploy-subdomain2.html">Subdomínio 2</a>
+                    </div>
+                </details>
+            </nav>
+        </div>
+    </div>
+    <main class="shell">
+        <header class="hero"><span class="eyebrow">Atividade 1 • Apache</span>
+            <h1><code>apache2.sh</code></h1>
+            <p class="lead">Instala Apache e cria VirtualHosts para o domínio e dois subdomínios.</p>
+        </header>
+        <div class="layout">
+            <article class="content">
+                <section class="panel">
+                    <h2>Script</h2>
+                    <div class="code-card">
+                        <div class="code-head"><span>apache2.sh</span><button class="copy-button" type="button"
+                                data-copy-target="script-code">Copiar script</button></div>
+                        <pre><code class="language-bash" id="script-code">#!/bin/bash
+
+set -Eeuo pipefail
+export DEBIAN_FRONTEND=noninteractive
+
+source "$(dirname "$0")/setup.conf"
+
+echo "==&gt; Installing Apache2 ..."
+echo
+apt-get install -y apache2
+echo "-&gt; Configuring global ServerName ..."
+tee /etc/apache2/conf-available/servername.conf &gt; /dev/null &lt;&lt;EOF
+ServerName $DOMAIN_NAME
+EOF
+a2enconf servername
+systemctl reload apache2
+echo "==&gt; Allowing ports 80 and 443 in UFW for Apache2 ..."
+echo
+ufw allow in "Apache Full"
+echo
+echo
+echo "==&gt; Configuring sites in Apache2 ..."
+echo
+echo "-&gt; Removing default Apache sites ..."
+a2dissite 000-default.conf default-ssl.conf
+rm -f /etc/apache2/sites-available/000-default.conf
+rm -f /etc/apache2/sites-available/default-ssl.conf
+rm -rf /var/www/html
+echo "-&gt; Configuring $DOMAIN_NAME ..."
+mkdir -p "/var/www/$DOMAIN_NAME"
+tee "/etc/apache2/sites-available/$DOMAIN_NAME.conf" &gt; /dev/null &lt;&lt;EOF
+&lt;VirtualHost *:80&gt;
+    ServerName $DOMAIN_NAME
+    ServerAlias www.$DOMAIN_NAME
+    DocumentRoot /var/www/$DOMAIN_NAME
+
+    ErrorLog \${APACHE_LOG_DIR}/${DOMAIN_NAME}_error.log
+    CustomLog \${APACHE_LOG_DIR}/${DOMAIN_NAME}_access.log combined
+&lt;/VirtualHost&gt;
+EOF
+echo "-&gt; Configuring $SUBDOMAIN1.$DOMAIN_NAME ..."
+mkdir -p "/var/www/$SUBDOMAIN1.$DOMAIN_NAME"
+tee "/etc/apache2/sites-available/$SUBDOMAIN1.$DOMAIN_NAME.conf" &gt; /dev/null &lt;&lt;EOF
+&lt;VirtualHost *:80&gt;
+    ServerName $SUBDOMAIN1.$DOMAIN_NAME
+    DocumentRoot /var/www/$SUBDOMAIN1.$DOMAIN_NAME
+
+    ErrorLog \${APACHE_LOG_DIR}/${SUBDOMAIN1}.${DOMAIN_NAME}_error.log
+    CustomLog \${APACHE_LOG_DIR}/${SUBDOMAIN1}.${DOMAIN_NAME}_access.log combined
+&lt;/VirtualHost&gt;
+EOF
+echo "-&gt; Configuring $SUBDOMAIN2.$DOMAIN_NAME ..."
+mkdir -p "/var/www/$SUBDOMAIN2.$DOMAIN_NAME"
+tee "/etc/apache2/sites-available/$SUBDOMAIN2.$DOMAIN_NAME.conf" &gt; /dev/null &lt;&lt;EOF
+&lt;VirtualHost *:80&gt;
+    ServerName $SUBDOMAIN2.$DOMAIN_NAME
+    DocumentRoot /var/www/$SUBDOMAIN2.$DOMAIN_NAME
+
+    ErrorLog \${APACHE_LOG_DIR}/${SUBDOMAIN2}.${DOMAIN_NAME}_error.log
+    CustomLog \${APACHE_LOG_DIR}/${SUBDOMAIN2}.${DOMAIN_NAME}_access.log combined
+&lt;/VirtualHost&gt;
+EOF
+echo "-&gt; Enabling sites ..."
+a2ensite "$DOMAIN_NAME.conf"
+a2ensite "$SUBDOMAIN1.$DOMAIN_NAME.conf"
+a2ensite "$SUBDOMAIN2.$DOMAIN_NAME.conf"
+echo "-&gt; Testing Apache configuration ..."
+apache2ctl configtest
+echo
+echo "==&gt; Done! Restarting server ..."
+reboot</code></pre>
+                    </div>
+                </section>
+                <section class="panel">
+                    <h2>Comandos e parâmetros</h2>
+                    <div class="reference-list">
+                        <div class="reference">
+                            <h3>Linhas comuns do Bash</h3>
+                            <p><code>#!/bin/bash</code> é o shebang e seleciona o interpretador Bash.
+                                <code>set -Eeuo pipefail</code> faz o script falhar de forma mais segura:
+                                <code>-e</code> encerra diante de falhas (com exceções previstas pelo Bash),
+                                <code>-E</code> estende uma eventual trap <code>ERR</code> a funções e subshells (shells
+                                filhos; trap é uma ação definida para ocorrer diante de um evento; este script não
+                                define essa trap), <code>-u</code> acusa variáveis não definidas e <code>pipefail</code>
+                                propaga falhas de qualquer comando em uma sequência ligada por <code>|</code>.
+                                <code>export DEBIAN_FRONTEND=noninteractive</code> envia ao APT a configuração para
+                                evitar perguntas interativas durante instalações. “Shell” é o interpretador de comandos;
+                                APT é o instalador de pacotes do Ubuntu.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>echo</code></h3>
+                            <p>Imprime mensagens de status no terminal. Sem argumentos, imprime uma linha em branco; não
+                                instala nem configura nada.</p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>source "$(dirname "$0")/setup.conf"</code></h3>
+                            <p><code>source</code> executa o arquivo no shell atual para carregar suas variáveis.
+                                <code>$0</code> é o caminho usado para chamar o script; <code>dirname</code> extrai a
+                                pasta desse caminho; <code>$(...)</code> substitui o comando pelo resultado. A barra
+                                <code>/</code> junta a pasta ao nome do arquivo. Assim, <code>setup.conf</code> pode
+                                estar junto do script mesmo quando ele é chamado de outra pasta.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>apt-get install -y apache2</code></h3>
+                            <p><code>apt-get</code> é o instalador de pacotes do Ubuntu; <code>install</code> solicita a
+                                instalação do pacote <code>apache2</code>, o servidor web Apache; <code>-y</code>
+                                responde “sim” às confirmações. Um pacote é uma unidade distribuída pelo repositório com
+                                programa e arquivos relacionados.</p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>tee ... &gt; /dev/null &lt;&lt;EOF</code></h3>
+                            <p><code>tee</code> recebe texto pela entrada padrão e o grava no arquivo indicado.
+                                <code>&gt; /dev/null</code> redireciona a saída do próprio <code>tee</code> para
+                                <code>/dev/null</code>, o destino especial que descarta dados, evitando duplicar o texto
+                                no terminal. <code>&lt;&lt;EOF</code> inicia um heredoc e a linha isolada
+                                <code>EOF</code> o encerra. Como <code>EOF</code> não está entre aspas, o Bash expande
+                                variáveis como <code>$DOMAIN_NAME</code> dentro do bloco. <code>ServerName</code> define
+                                o nome principal usado pelo Apache; o arquivo é criado na pasta de configurações
+                                disponíveis.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>a2enconf</code>, <code>a2ensite</code>, <code>systemctl reload</code> e UFW</h3>
+                            <p><code>a2enconf</code> habilita uma configuração global do Apache; <code>a2ensite</code>
+                                habilita um arquivo de site (VirtualHost). “Habilitar” cria a ligação em
+                                <code>conf-enabled</code> ou <code>sites-enabled</code> para o arquivo correspondente em
+                                <code>*-available</code>. <code>systemctl reload apache2</code> pede ao serviço Apache
+                                já em execução para reler as configurações, sem reiniciar o sistema.
+                                <code>ufw allow in "Apache Full"</code> cria uma regra UFW de entrada baseada no perfil
+                                Apache Full, que libera HTTP (porta 80) e HTTPS (porta 443); <code>allow</code> permite,
+                                <code>in</code> indica tráfego que chega e <code>ufw</code> é o firewall explicado na
+                                página Servidor. O script configura um VirtualHost para o domínio e dois para os
+                                subdomínios.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>a2dissite</code>, <code>rm -f</code> e <code>rm -rf</code></h3>
+                            <p><code>a2dissite</code> desabilita os VirtualHosts padrão do Apache. <code>rm</code>
+                                remove arquivos; <code>-f</code> (“force”) não pede confirmação e ignora arquivos
+                                inexistentes; <code>-r</code> (“recursive”) percorre diretórios e seu conteúdo. Por isso
+                                <code>rm -rf /var/www/html</code> apaga recursivamente o conteúdo do site padrão — não é
+                                reversível sem backup. <code>/var/www/html</code> é o document root padrão (“raiz” dos
+                                arquivos servidos pelo site).
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>mkdir -p</code> e diretivas do VirtualHost</h3>
+                            <p><code>mkdir</code> cria diretórios; <code>-p</code> cria também diretórios pais e não
+                                falha se o diretório já existir. Um VirtualHost é a configuração de um site atendido
+                                pelo Apache. <code>&lt;VirtualHost *:80&gt;</code> seleciona conexões HTTP recebidas em
+                                qualquer endereço local (<code>*</code>) na porta 80; <code>&lt;/VirtualHost&gt;</code>
+                                encerra o bloco. <code>ServerName</code> identifica o nome do site;
+                                <code>ServerAlias</code> adiciona outro nome, aqui <code>www</code>;
+                                <code>DocumentRoot</code> indica a pasta dos arquivos públicos. <code>ErrorLog</code> e
+                                <code>CustomLog</code> definem registros de erros e acessos.
+                                <code>${APACHE_LOG_DIR}</code> é uma variável do Apache para sua pasta de logs; a barra
+                                invertida no gerador impede o Bash de expandi-la antes do Apache. <code>combined</code>
+                                é o formato detalhado de registro de acesso.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>apache2ctl configtest</code> e <code>reboot</code></h3>
+                            <p><code>apache2ctl</code> é a ferramenta de controle/diagnóstico do Apache;
+                                <code>configtest</code> verifica a sintaxe dos arquivos e informa se a configuração pode
+                                ser lida, mas não testa DNS nem acesso externo. Se esse comando terminar sem erro,
+                                <code>reboot</code> reinicia o sistema operacional inteiro (não apenas o Apache);
+                                aguarde a instância iniciar e reconecte por SSH.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+                <p><a href="index.html">← Voltar à Atividade 1</a></p>
+            </article>
+            <aside class="sidebar">
+                <h2>Arquivos e publicação</h2>
+                <ul>
+                    <li><a href="setup-conf.html">setup.conf</a></li>
+                    <li><a href="server-hardening.html">server-hardening.sh</a></li>
+                    <li><a href="apache2.html" aria-current="page">apache2.sh</a></li>
+                    <li><a href="tls-apache2.html">tls-apache2.sh</a></li>
+                    <li><a href="mysql-php.html">mysql-php.sh</a></li>
+                    <li><a href="deploy-subdomain1.html">deploy-subdomain1.sh</a></li>
+                    <li><a href="deploy-subdomain2.html">Publicação no subdomínio 2</a></li>
+                </ul>
+            </aside>
+        </div>
+    </main>
+    <footer>
+        <div class="shell"></div>
+    </footer>
+</body>
+
+</html>

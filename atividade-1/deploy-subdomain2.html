@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Instruções para baixar um template web, enviá-lo por SCP e publicá-lo no segundo subdomínio.">
+    <title>Publicação no subdomínio 2 — Atividade 1</title>
+    <link rel="stylesheet" href="../docs.css">
+    <script src="../bash-highlight.js" defer></script>
+</head>
+
+<body>
+    <div class="topbar">
+        <div class="shell topbar-inner">
+            <a class="brand" href="../index.html"><span class="brand-mark">~/</span> Redes de Computadores</a>
+            <nav aria-label="Navegação principal">
+                <a href="../index.html">Início</a>
+                <details class="activity-menu is-active">
+                    <summary>Atividade 1</summary>
+                    <div class="activity-menu-items">
+                        <a href="index.html">Visão geral</a>
+                        <a href="server-hardening.html">Servidor</a>
+                        <a href="apache2.html">Apache</a>
+                        <a href="tls-apache2.html">HTTPS</a>
+                        <a href="mysql-php.html">PHP e MySQL</a>
+                        <a href="deploy-subdomain1.html">Subdomínio 1</a>
+                        <a href="deploy-subdomain2.html" aria-current="page">Subdomínio 2</a>
+                    </div>
+                </details>
+            </nav>
+        </div>
+    </div>
+    <main class="shell">
+        <header class="hero">
+            <span class="eyebrow">Atividade 1 • Subdomínio 2</span>
+            <h1>Publicação no subdomínio 2</h1>
+            <p class="lead">Baixe um template web gratuito e envie seus arquivos para o segundo subdomínio usando SCP.
+            </p>
+        </header>
+        <div class="layout">
+            <article class="content">
+                <section class="panel">
+                    <h2>1. Baixe e extraia um template</h2>
+                    <p>Escolha um template HTML gratuito, por exemplo no <a href="https://startbootstrap.com/themes"
+                            target="_blank" rel="noopener noreferrer">Start Bootstrap</a>. Baixe e extraia o arquivo no
+                        computador local. Confirme que o <code>index.html</code> está na raiz da pasta extraída e abra
+                        um terminal nessa pasta.</p>
+                </section>
+                <section class="panel">
+                    <h2>2. Envie o template para a home do servidor</h2>
+                    <p>Abra o terminal local dentro da pasta extraída do template. Antes de enviar, conecte-se ao
+                        servidor com sua chave privada SSH e crie <code>~/template-subdomain2</code> dentro da home do
+                        usuário <code>ubuntu</code>. Depois, substitua <code>CAMINHO_DA_CHAVE</code> pelo caminho local
+                        da chave e <code>IP_DO_SERVIDOR</code> pelo IP público da instância. O computador local precisa
+                        ter o cliente OpenSSH (<code>ssh</code>/<code>scp</code>) instalado e disponível no terminal;
+                        sem ele, o shell exibirá <code>command not found</code>.</p>
+                    <div class="code-card">
+                        <div class="code-head"><span>Enviar o template com SCP</span><span class="tag">terminal
+                                local</span></div>
+                        <pre><code class="language-bash">scp -i "CAMINHO_DA_CHAVE" -r ./* ubuntu@IP_DO_SERVIDOR:~/template-subdomain2/</code></pre>
+                    </div>
+                    <p><code>./*</code> inclui itens não ocultos da pasta atual. A opção <code>-i</code> usa a chave
+                        privada. O SCP copia o conteúdo da pasta atual para a home do servidor; para incluir arquivos
+                        ocultos do template, envie-os separadamente.</p>
+                    <p>Depois do upload, conecte-se ao servidor por SSH usando a mesma chave privada. No terminal
+                        remoto, use
+                        <code>sudo</code> para copiar o conteúdo de <code>~/template-subdomain2</code> para o
+                        <code>DocumentRoot</code> do segundo subdomínio. Esse diretório é
+                        <code>/var/www/</code> seguido pelos valores de <code>SUBDOMAIN2</code> e
+                        <code>DOMAIN_NAME</code>, conforme configurado em <a
+                            href="apache2.html"><code>apache2.sh</code></a>.
+                        A cópia substitui arquivos com o mesmo nome, mas não remove arquivos antigos que não existam no
+                        template. O SCP não executa <code>sudo</code> remotamente, por isso os arquivos são enviados
+                        primeiro para a home.
+                    </p>
+                    <h2>3. Defina o proprietário dos arquivos do site</h2>
+                    <p>Depois de copiar os arquivos para o <code>DocumentRoot</code>, execute este comando no
+                        terminal remoto do servidor. Com a configuração desta atividade
+                        (<code>SUBDOMAIN2=template</code> e <code>DOMAIN_NAME=m7.gs</code>), o caminho do site é
+                        <code>/var/www/template.m7.gs</code>:</p>
+                    <div class="code-card">
+                        <div class="code-head"><span>Alterar proprietário do site</span><span
+                                class="tag">terminal remoto</span></div>
+                        <pre><code class="language-bash">sudo chown -R www-data:www-data /var/www/template.m7.gs</code></pre>
+                    </div>
+                    <p>O comando altera quem é o proprietário dos arquivos e diretórios do site:</p>
+                    <ul>
+                        <li><code>sudo</code> executa o comando com privilégios de administrador, necessários para
+                            alterar a propriedade de arquivos em <code>/var/www</code>.</li>
+                        <li><code>chown</code> significa “change owner” e altera o proprietário e, opcionalmente, o
+                            grupo de um arquivo ou diretório.</li>
+                        <li><code>-R</code> aplica a alteração recursivamente: além da pasta indicada, inclui todos os
+                            arquivos e subpastas dentro dela.</li>
+                        <li><code>www-data:www-data</code> define <code>www-data</code> como proprietário e também
+                            como grupo. Esse é o usuário e grupo normalmente usados pelo Apache no Ubuntu.</li>
+                        <li><code>/var/www/template.m7.gs</code> é o caminho da pasta publicada. Se os valores de
+                            domínio ou subdomínio em <code>setup.conf</code> forem diferentes, substitua esse caminho
+                            pelo <code>DocumentRoot</code> correspondente; não execute o comando mantendo um caminho
+                            que não seja o do site.</li>
+                    </ul>
+                    <p>Assim, os arquivos passam a pertencer ao usuário do servidor web. O comando não altera as
+                        permissões de leitura, escrita ou execução; ele altera somente proprietário e grupo.</p>
+                </section>
+                <p><a href="deploy-subdomain1.html">← Publicação no subdomínio 1</a></p>
+            </article>
+            <aside class="sidebar">
+                <h2>Arquivos e publicação</h2>
+                <ul>
+                    <li><a href="setup-conf.html">setup.conf</a></li>
+                    <li><a href="server-hardening.html">server-hardening.sh</a></li>
+                    <li><a href="apache2.html">apache2.sh</a></li>
+                    <li><a href="tls-apache2.html">tls-apache2.sh</a></li>
+                    <li><a href="mysql-php.html">mysql-php.sh</a></li>
+                    <li><a href="deploy-subdomain1.html">Publicação no subdomínio 1</a></li>
+                    <li><a href="deploy-subdomain2.html" aria-current="page">Publicação no subdomínio 2</a></li>
+                </ul>
+            </aside>
+        </div>
+    </main>
+    <footer>
+        <div class="shell"></div>
+    </footer>
+</body>
+
+</html>

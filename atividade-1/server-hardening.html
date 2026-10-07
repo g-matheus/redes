@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Script Bash de atualizações, proteção SSH, firewall UFW e Fail2ban para Ubuntu.">
+    <title>Servidor Linux — Atividade 1</title>
+    <link rel="stylesheet" href="../docs.css">
+    <script src="../copy.js" defer></script>
+    <script src="../bash-highlight.js" defer></script>
+</head>
+
+<body>
+    <div class="topbar">
+        <div class="shell topbar-inner">
+            <a class="brand" href="../index.html"><span class="brand-mark">~/</span> Redes de Computadores</a>
+            <nav aria-label="Navegação principal">
+                <a href="../index.html">Início</a>
+                <details class="activity-menu is-active">
+                    <summary>Atividade 1</summary>
+                    <div class="activity-menu-items">
+                        <a href="index.html">Visão geral</a>
+                        <a href="server-hardening.html" aria-current="page">Servidor</a>
+                        <a href="apache2.html">Apache</a>
+                        <a href="tls-apache2.html">HTTPS</a>
+                        <a href="mysql-php.html">PHP e MySQL</a>
+                        <a href="deploy-subdomain1.html">Subdomínio 1</a>
+                        <a href="deploy-subdomain2.html">Subdomínio 2</a>
+                    </div>
+                </details>
+            </nav>
+        </div>
+    </div>
+    <main class="shell">
+        <header class="hero"><span class="eyebrow">Atividade 1 • preparação da máquina Linux</span>
+            <h1><code>server-hardening.sh</code></h1>
+            <p class="lead">Configura hardening de SSH, firewall e Fail2ban.</p>
+        </header>
+        <div class="layout">
+            <article class="content">
+                <section class="panel">
+                    <h2>Script</h2>
+                    <div class="code-card">
+                        <div class="code-head"><span>server-hardening.sh</span><button class="copy-button" type="button"
+                                data-copy-target="script-code">Copiar script</button></div>
+                        <pre><code class="language-bash" id="script-code">#!/bin/bash
+
+set -Eeuo pipefail
+export DEBIAN_FRONTEND=noninteractive
+
+echo "==&gt; Updating packages..."
+echo
+apt-get update
+apt-get upgrade -y
+echo
+echo "==&gt; Configuring automatic updates..."
+echo
+apt-get install -y unattended-upgrades
+cat &gt; /etc/apt/apt.conf.d/20auto-upgrades &lt;&lt;'EOF'
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+EOF
+systemctl enable --now apt-daily.timer
+systemctl enable --now apt-daily-upgrade.timer
+echo
+echo "==&gt; Configuring SSH hardening..."
+echo
+sed -i -E "s/^#?PasswordAuthentication.*/PasswordAuthentication no/" "/etc/ssh/sshd_config"
+sed -i -E "s/^#?PermitRootLogin.*/PermitRootLogin no/" "/etc/ssh/sshd_config"
+sed -i -E "s/^#?X11Forwarding.*/X11Forwarding no/" "/etc/ssh/sshd_config"
+echo
+echo "==&gt; Configuring Firewall (UFW)..."
+echo
+apt-get install -y ufw
+ufw default deny incoming
+ufw default allow outgoing
+ufw limit ssh
+ufw --force enable
+echo
+echo "==&gt; Restarting SSH service..."
+echo
+systemctl restart ssh
+echo
+echo "==&gt; Installing Fail2ban..."
+echo
+export PYTHONWARNINGS="ignore::SyntaxWarning"
+apt-get install -y fail2ban
+systemctl enable --now fail2ban
+unset PYTHONWARNINGS
+echo
+echo "==&gt; Done! Restarting server ..."
+reboot</code></pre>
+                    </div>
+                </section>
+                <section class="panel">
+                    <h2>Comandos e parâmetros</h2>
+                    <div class="reference-list">
+                        <div class="reference">
+                            <h3><code>echo</code> e linhas em branco</h3>
+                            <p><code>echo</code> escreve uma mensagem no terminal. Quando aparece sem texto, apenas
+                                imprime uma linha em branco para separar etapas; não altera configuração nem executa
+                                outro comando.</p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>set -Eeuo pipefail</code></h3>
+                            <p><code>set</code> altera opções do Bash. <code>-e</code> encerra o script quando um
+                                comando falha (com exceções em certas condições); <code>-E</code> faz um eventual
+                                tratamento <code>ERR</code> também valer em funções e subshells. Uma trap é uma ação
+                                definida para ocorrer quando acontece um evento; este script não define uma trap
+                                <code>ERR</code>. Um subshell é um shell filho iniciado para executar uma parte do
+                                trabalho. <code>-u</code> trata o uso de variável não definida como erro.
+                                <code>pipefail</code> faz um pipeline retornar falha se qualquer comando dele falhar,
+                                não apenas o último. Um pipeline é uma sequência ligada por <code>|</code>; este script
+                                não usa nenhum.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>DEBIAN_FRONTEND=noninteractive</code></h3>
+                            <p>Define uma variável de ambiente usada pelos instaladores Debian, incluindo o APT.
+                                <code>noninteractive</code> pede que os pacotes não abram perguntas interativas durante
+                                a instalação. <code>export</code> torna a variável disponível aos comandos filhos do
+                                shell. O APT é o sistema de gerenciamento de pacotes do Ubuntu; os pacotes são programas
+                                e arquivos instaláveis.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>apt-get update</code> / <code>apt-get upgrade -y</code></h3>
+                            <p><code>apt-get</code> é a interface de linha de comando do APT. <code>update</code> baixa
+                                os índices dos repositórios (catálogos de pacotes disponíveis); não instala
+                                atualizações. <code>upgrade</code> instala versões atualizadas dos pacotes instalados
+                                quando isso não exige remover pacotes. <code>-y</code> responde “sim” às confirmações. O
+                                hífen em <code>apt-get</code> faz parte do nome do comando.</p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>unattended-upgrades</code></h3>
+                            <p>É o pacote que instala o serviço de atualizações de segurança automáticas do Ubuntu.
+                                “Unattended” significa que a tarefa agendada pode rodar sem alguém responder a cada
+                                pergunta no terminal; as diretivas gravadas no arquivo de configuração ativam as tarefas
+                                periódicas.</p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>cat &gt; ... &lt;&lt;'EOF'</code> e <code>20auto-upgrades</code></h3>
+                            <p><code>cat</code> lê o texto recebido e <code>&gt;</code> redireciona a saída para o
+                                arquivo, criando-o ou substituindo seu conteúdo. <code>&lt;&lt;'EOF'</code> inicia um
+                                heredoc: o texto entre essa linha e a linha que contém apenas <code>EOF</code> vira
+                                entrada do comando. As aspas impedem a expansão de variáveis e substituições nesse
+                                bloco. <code>/etc/apt/apt.conf.d/</code> guarda configurações do APT;
+                                <code>20auto-upgrades</code> é o arquivo criado. As diretivas
+                                <code>APT::Periodic::Update-Package-Lists</code> e
+                                <code>APT::Periodic::Unattended-Upgrade</code>, com valor <code>"1"</code>, ativam as
+                                tarefas periódicas correspondentes. Os dois-pontos fazem parte da sintaxe das diretivas
+                                do APT.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>systemctl enable --now</code></h3>
+                            <p><code>systemctl</code> controla serviços e unidades do <code>systemd</code>, o
+                                gerenciador de serviços do Ubuntu. <code>enable</code> configura uma unidade para
+                                iniciar automaticamente; <code>--now</code> também a inicia imediatamente.
+                                <code>apt-daily.timer</code> e <code>apt-daily-upgrade.timer</code> são timers (unidades
+                                que agendam tarefas) do APT: um atualiza os índices e o outro executa atualizações
+                                automáticas.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>sed -i -E</code> e as expressões de configuração SSH</h3>
+                            <p><code>sed</code> transforma texto linha a linha. <code>-i</code> grava a alteração
+                                diretamente no arquivo (“no lugar”); <code>-E</code> habilita expressões regulares
+                                estendidas, um padrão para localizar texto. Em <code>s/padrão/substituição/</code>,
+                                <code>s</code> significa substituir, a primeira barra separa o padrão e a segunda separa
+                                a substituição. <code>^</code> significa início da linha, <code>#?</code> aceita zero ou
+                                um sinal de comentário <code>#</code>, e <code>.*</code> corresponde ao restante da
+                                linha. Assim as três regras substituem, estejam comentadas ou não, as diretivas
+                                <code>PasswordAuthentication</code>, <code>PermitRootLogin</code> e
+                                <code>X11Forwarding</code>. Os valores <code>no</code> desativam autenticação SSH por
+                                senha, acesso SSH direto como root e encaminhamento gráfico X11, respectivamente. SSH é
+                                o protocolo de acesso remoto criptografado; root é a conta administrativa; X11 encaminha
+                                janelas gráficas pela conexão.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3>UFW: <code>default</code>, <code>deny</code>, <code>allow</code>, <code>limit</code> e
+                                <code>--force</code>
+                            </h3>
+                            <p>UFW (“Uncomplicated Firewall”) é a interface simples do firewall do Ubuntu.
+                                <code>default deny incoming</code> bloqueia por padrão conexões que chegam ao servidor;
+                                <code>default allow outgoing</code> permite por padrão conexões iniciadas pelo servidor.
+                                <code>limit ssh</code> permite SSH, mas reduz tentativas repetidas de conexão do mesmo
+                                endereço. <code>--force</code> faz <code>ufw enable</code> ativar o firewall sem pedir
+                                confirmação. <code>in</code> em regras posteriores significa tráfego de entrada;
+                                <code>ssh</code> identifica a regra/serviço SSH.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>systemctl restart ssh</code> e Fail2ban</h3>
+                            <p><code>restart</code> para e inicia novamente o serviço <code>ssh</code>, fazendo-o reler
+                                a configuração alterada. Fail2ban monitora registros de autenticação e bloqueia
+                                temporariamente origens com repetidas tentativas malsucedidas.
+                                <code>apt-get install -y fail2ban</code> instala o pacote;
+                                <code>systemctl enable --now fail2ban</code> configura início automático e inicia o
+                                serviço já nesta sessão.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>unset PYTHONWARNINGS</code> e <code>reboot</code></h3>
+                            <p><code>PYTHONWARNINGS="ignore::SyntaxWarning"</code> é uma variável de ambiente lida pelo
+                                Python: pede para ignorar avisos da categoria <code>SyntaxWarning</code> durante a
+                                instalação do Fail2ban. Um aviso de sintaxe aponta para construções de código Python
+                                suspeitas, mas não necessariamente impede sua execução. Os dois-pontos separam os campos
+                                da regra de filtro; o campo da mensagem foi deixado vazio. <code>unset</code> remove a
+                                variável do ambiente do shell depois da instalação. <code>reboot</code> reinicia todo o
+                                sistema operacional; a conexão SSH cai e é preciso aguardar a máquina voltar antes de
+                                reconectar.</p>
+                        </div>
+                    </div>
+                </section>
+                <p><a href="index.html">← Voltar à Atividade 1</a></p>
+            </article>
+            <aside class="sidebar">
+                <h2>Arquivos e publicação</h2>
+                <ul>
+                    <li><a href="setup-conf.html">setup.conf</a></li>
+                    <li><a href="server-hardening.html" aria-current="page">server-hardening.sh</a></li>
+                    <li><a href="apache2.html">apache2.sh</a></li>
+                    <li><a href="tls-apache2.html">tls-apache2.sh</a></li>
+                    <li><a href="mysql-php.html">mysql-php.sh</a></li>
+                    <li><a href="deploy-subdomain1.html">deploy-subdomain1.sh</a></li>
+                    <li><a href="deploy-subdomain2.html">Publicação no subdomínio 2</a></li>
+                </ul>
+            </aside>
+        </div>
+    </main>
+    <footer>
+        <div class="shell"></div>
+    </footer>
+</body>
+
+</html>
