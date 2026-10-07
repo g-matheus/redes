@@ -79,6 +79,10 @@
                         servidor. Libere as portas TCP <code>80</code>/<code>443</code> na Oracle Cloud
                         Infrastructure.</p>
                     <p>Edite <a href="setup-conf.html"><code>setup.conf</code></a> com seus domínios e URL Git.</p>
+                    <p> Se usar senha ao invés de chaves SSH, edite o script <a
+                            href="server-hardening.html"><code>server-hardening.sh</code></a>, removendo o SSH
+                        hardening.
+                    </p>
                 </section>
 
                 <section class="panel" id="executar">
@@ -92,8 +96,6 @@
                                 script completo</code></span></li>
                         <li><strong>Gere os arquivos</strong><span>Execute
                                 <code>bash ~/generate-scripts.sh</code></span></li>
-                        <li><strong>Edite a configuração</strong><span>Atualize <code>~/setup.conf</code> com seus
-                                domínios e URL Git caso necessário.</span></li>
                     </ol>
                     <div class="code-card">
                         <div class="code-head"><span>Comandos para preparar os arquivos na home</span><span
