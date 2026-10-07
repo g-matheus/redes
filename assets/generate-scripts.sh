@@ -236,9 +236,13 @@ source "$(dirname "$0")/setup.conf"
 FULL_DOMAIN="${SUBDOMAIN1}.${DOMAIN_NAME}"
 WEB_DIR="/var/www/${FULL_DOMAIN}"
 
-echo "==> Cloning repository to ${WEB_DIR}..."
-echo
+echo "==> Deploying site on ${FULL_DOMAIN}..."
+echo "-> Cleaning directory ${WEB_DIR}..."
+rm -rf /var/www/$FULL_DOMAIN/
+echo "-> Cloning repository to ${WEB_DIR}..."
 git clone "$SUBDOMAIN1_SITE_REPO_URL" "$WEB_DIR"
+echo "-> Setting permissions for ${WEB_DIR}..."
+chown -R www-data:www-data "$WEB_DIR"
 echo "==> Done! Application deployed at http://${FULL_DOMAIN}"
 OUTER_EOF
 chmod 740 deploy-subdomain1.sh
