@@ -142,13 +142,38 @@ a:hover {
     top: 100%;
     right: 0;
     display: grid;
-    min-width: 205px;
+    min-width: 250px;
     max-width: calc(100vw - 28px);
-    padding: 8px;
+    max-height: min(70vh, 520px);
+    overflow-y: auto;
+    padding: 10px;
     border: 1px solid var(--border);
     border-radius: 12px;
     background: var(--surface);
     box-shadow: 0 12px 30px #0006;
+}
+
+.activity-menu-section {
+    display: grid;
+    gap: 2px;
+}
+
+.activity-menu-section+.activity-menu-section {
+    margin-top: 6px;
+    padding-top: 7px;
+    border-top: 1px solid var(--border);
+}
+
+.activity-menu-section--steps>a {
+    margin-left: 8px;
+}
+
+.activity-menu-heading {
+    padding: 3px 9px;
+    color: var(--text);
+    font-size: .79rem;
+    font-weight: 750;
+    letter-spacing: .02em;
 }
 
 .activity-menu:not([open])>.activity-menu-items {
@@ -156,8 +181,16 @@ a:hover {
 }
 
 .topbar nav .activity-menu-items a {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
     padding: 6px 9px;
     border-radius: 7px;
+}
+
+.activity-menu-status {
+    color: var(--muted);
+    font-size: .78rem;
 }
 
 .topbar nav .activity-menu-items a:hover,
@@ -658,8 +691,11 @@ footer a:hover {
     }
 
     .activity-menu-items {
-        width: min(205px, calc(100vw - 76px));
-        min-width: min(205px, calc(100vw - 76px));
+        right: auto;
+        left: 0;
+        width: min(290px, calc(100vw - 28px));
+        min-width: min(290px, calc(100vw - 28px));
+        max-height: min(65vh, 480px);
     }
 
     .steps,
