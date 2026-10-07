@@ -41,6 +41,11 @@ a:hover {
     margin-inline: auto;
 }
 
+site-header,
+site-footer {
+    display: block;
+}
+
 .topbar {
     border-bottom: 1px solid var(--border);
     background: var(--page);
@@ -682,10 +687,12 @@ footer a:hover {
     }
 
     .topbar nav {
+        position: relative;
         gap: 4px 13px;
     }
 
     .activity-menu {
+        position: static;
         display: block;
         min-width: min(205px, calc(100vw - 76px));
     }
