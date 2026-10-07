@@ -18,6 +18,7 @@
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
     <link rel="stylesheet" href="../docs.css">
     <script src="../site-components.js" defer></script>
+    <script src="../script-viewer.js" defer></script>
     <script src="../copy.js" defer></script>
     <script src="../bash-highlight.js" defer></script>
 </head>
@@ -40,32 +41,7 @@
                     <div class="code-card">
                         <div class="code-head"><span>tls-apache2.sh</span><button class="copy-button" type="button"
                                 data-copy-target="script-code">Copiar script</button></div>
-                        <pre><code class="language-bash" id="script-code">#!/bin/bash
-
-set -Eeuo pipefail
-export DEBIAN_FRONTEND=noninteractive
-
-source "$(dirname "$0")/setup.conf"
-
-echo "==&gt; Configuring TLS ..."
-echo
-echo "-&gt; Installing certbot ..."
-apt install -y certbot python3-certbot-apache
-echo "-&gt; Configuring TLS certificates ..."
-certbot --apache \
-    --non-interactive \
-    --agree-tos \
-    --redirect \
-    --register-unsafely-without-email \
-    -d "$DOMAIN_NAME" \
-    -d "www.$DOMAIN_NAME" \
-    -d "$SUBDOMAIN1.$DOMAIN_NAME" \
-    -d "$SUBDOMAIN2.$DOMAIN_NAME"
-echo "-&gt; Testing certificate renewal ..."
-certbot renew --dry-run
-systemctl reload apache2
-echo
-echo "==&gt; Apache2 installation and TLS configuration completed successfully!"</code></pre>
+                        <script-viewer src="../assets/generate-scripts.sh" extract="tls-apache2.sh" code-id="script-code"></script-viewer>
                     </div>
                 </section>
                 <section class="panel">

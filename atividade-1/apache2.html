@@ -18,6 +18,7 @@
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
     <link rel="stylesheet" href="../docs.css">
     <script src="../site-components.js" defer></script>
+    <script src="../script-viewer.js" defer></script>
     <script src="../copy.js" defer></script>
     <script src="../bash-highlight.js" defer></script>
 </head>
@@ -36,77 +37,7 @@
                     <div class="code-card">
                         <div class="code-head"><span>apache2.sh</span><button class="copy-button" type="button"
                                 data-copy-target="script-code">Copiar script</button></div>
-                        <pre><code class="language-bash" id="script-code">#!/bin/bash
-
-set -Eeuo pipefail
-export DEBIAN_FRONTEND=noninteractive
-
-source "$(dirname "$0")/setup.conf"
-
-echo "==&gt; Installing Apache2 ..."
-echo
-apt-get install -y apache2
-echo "-&gt; Configuring global ServerName ..."
-tee /etc/apache2/conf-available/servername.conf &gt; /dev/null &lt;&lt;EOF
-ServerName $DOMAIN_NAME
-EOF
-a2enconf servername
-systemctl reload apache2
-echo "==&gt; Allowing ports 80 and 443 in UFW for Apache2 ..."
-echo
-ufw allow in "Apache Full"
-echo
-echo
-echo "==&gt; Configuring sites in Apache2 ..."
-echo
-echo "-&gt; Removing default Apache sites ..."
-a2dissite 000-default.conf default-ssl.conf
-rm -f /etc/apache2/sites-available/000-default.conf
-rm -f /etc/apache2/sites-available/default-ssl.conf
-rm -rf /var/www/html
-echo "-&gt; Configuring $DOMAIN_NAME ..."
-mkdir -p "/var/www/$DOMAIN_NAME"
-tee "/etc/apache2/sites-available/$DOMAIN_NAME.conf" &gt; /dev/null &lt;&lt;EOF
-&lt;VirtualHost *:80&gt;
-    ServerName $DOMAIN_NAME
-    ServerAlias www.$DOMAIN_NAME
-    DocumentRoot /var/www/$DOMAIN_NAME
-
-    ErrorLog \${APACHE_LOG_DIR}/${DOMAIN_NAME}_error.log
-    CustomLog \${APACHE_LOG_DIR}/${DOMAIN_NAME}_access.log combined
-&lt;/VirtualHost&gt;
-EOF
-echo "-&gt; Configuring $SUBDOMAIN1.$DOMAIN_NAME ..."
-mkdir -p "/var/www/$SUBDOMAIN1.$DOMAIN_NAME"
-tee "/etc/apache2/sites-available/$SUBDOMAIN1.$DOMAIN_NAME.conf" &gt; /dev/null &lt;&lt;EOF
-&lt;VirtualHost *:80&gt;
-    ServerName $SUBDOMAIN1.$DOMAIN_NAME
-    DocumentRoot /var/www/$SUBDOMAIN1.$DOMAIN_NAME
-
-    ErrorLog \${APACHE_LOG_DIR}/${SUBDOMAIN1}.${DOMAIN_NAME}_error.log
-    CustomLog \${APACHE_LOG_DIR}/${SUBDOMAIN1}.${DOMAIN_NAME}_access.log combined
-&lt;/VirtualHost&gt;
-EOF
-echo "-&gt; Configuring $SUBDOMAIN2.$DOMAIN_NAME ..."
-mkdir -p "/var/www/$SUBDOMAIN2.$DOMAIN_NAME"
-tee "/etc/apache2/sites-available/$SUBDOMAIN2.$DOMAIN_NAME.conf" &gt; /dev/null &lt;&lt;EOF
-&lt;VirtualHost *:80&gt;
-    ServerName $SUBDOMAIN2.$DOMAIN_NAME
-    DocumentRoot /var/www/$SUBDOMAIN2.$DOMAIN_NAME
-
-    ErrorLog \${APACHE_LOG_DIR}/${SUBDOMAIN2}.${DOMAIN_NAME}_error.log
-    CustomLog \${APACHE_LOG_DIR}/${SUBDOMAIN2}.${DOMAIN_NAME}_access.log combined
-&lt;/VirtualHost&gt;
-EOF
-echo "-&gt; Enabling sites ..."
-a2ensite "$DOMAIN_NAME.conf"
-a2ensite "$SUBDOMAIN1.$DOMAIN_NAME.conf"
-a2ensite "$SUBDOMAIN2.$DOMAIN_NAME.conf"
-echo "-&gt; Testing Apache configuration ..."
-apache2ctl configtest
-echo
-echo "==&gt; Done! Restarting server ..."
-reboot</code></pre>
+                        <script-viewer src="../assets/generate-scripts.sh" extract="apache2.sh" code-id="script-code"></script-viewer>
                     </div>
                 </section>
                 <section class="panel">

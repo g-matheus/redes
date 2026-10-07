@@ -18,6 +18,7 @@
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
     <link rel="stylesheet" href="../docs.css">
     <script src="../site-components.js" defer></script>
+    <script src="../script-viewer.js" defer></script>
     <script src="../copy.js" defer></script>
     <script src="../bash-highlight.js" defer></script>
 </head>
@@ -36,53 +37,7 @@
                     <div class="code-card">
                         <div class="code-head"><span>server-hardening.sh</span><button class="copy-button" type="button"
                                 data-copy-target="script-code">Copiar script</button></div>
-                        <pre><code class="language-bash" id="script-code">#!/bin/bash
-
-set -Eeuo pipefail
-export DEBIAN_FRONTEND=noninteractive
-
-echo "==&gt; Updating packages..."
-echo
-apt-get update
-apt-get upgrade -y
-echo
-echo "==&gt; Configuring automatic updates..."
-echo
-apt-get install -y unattended-upgrades
-cat &gt; /etc/apt/apt.conf.d/20auto-upgrades &lt;&lt;'EOF'
-APT::Periodic::Update-Package-Lists "1";
-APT::Periodic::Unattended-Upgrade "1";
-EOF
-systemctl enable --now apt-daily.timer
-systemctl enable --now apt-daily-upgrade.timer
-echo
-echo "==&gt; Configuring SSH hardening..."
-echo
-sed -i -E "s/^#?PasswordAuthentication.*/PasswordAuthentication no/" "/etc/ssh/sshd_config"
-sed -i -E "s/^#?PermitRootLogin.*/PermitRootLogin no/" "/etc/ssh/sshd_config"
-sed -i -E "s/^#?X11Forwarding.*/X11Forwarding no/" "/etc/ssh/sshd_config"
-echo
-echo "==&gt; Configuring Firewall (UFW)..."
-echo
-apt-get install -y ufw
-ufw default deny incoming
-ufw default allow outgoing
-ufw limit ssh
-ufw --force enable
-echo
-echo "==&gt; Restarting SSH service..."
-echo
-systemctl restart ssh
-echo
-echo "==&gt; Installing Fail2ban..."
-echo
-export PYTHONWARNINGS="ignore::SyntaxWarning"
-apt-get install -y fail2ban
-systemctl enable --now fail2ban
-unset PYTHONWARNINGS
-echo
-echo "==&gt; Done! Restarting server ..."
-reboot</code></pre>
+                        <script-viewer src="../assets/generate-scripts.sh" extract="server-hardening.sh" code-id="script-code"></script-viewer>
                     </div>
                 </section>
                 <section class="panel">

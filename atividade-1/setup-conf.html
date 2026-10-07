@@ -18,6 +18,7 @@
     <link rel="icon" type="image/svg+xml" href="../favicon.svg">
     <link rel="stylesheet" href="../docs.css">
     <script src="../site-components.js" defer></script>
+    <script src="../script-viewer.js" defer></script>
     <script src="../bash-highlight.js" defer></script>
 </head>
 
@@ -34,10 +35,7 @@
                     <h2>Conteúdo gerado</h2>
                     <div class="code-card">
                         <div class="code-head"><span>setup.conf</span></div>
-                        <pre><code class="language-bash">DOMAIN_NAME=m7.gs
-SUBDOMAIN1=docs
-SUBDOMAIN2=template
-SUBDOMAIN1_SITE_REPO_URL="https://github.com/g-matheus/redes1.git"</code></pre>
+                        <script-viewer src="../assets/generate-scripts.sh" extract="setup.conf"></script-viewer>
                     </div>
                 </section>
                 <section class="panel">

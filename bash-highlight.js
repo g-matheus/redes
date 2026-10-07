@@ -139,7 +139,7 @@ function paintLine(line, state) {
     return fragments;
 }
 
-document.querySelectorAll("code.language-bash").forEach((code) => {
+function highlightBash(code) {
     const state = { heredoc: null };
     const lines = code.textContent.split("\n");
     const fragment = document.createDocumentFragment();
@@ -150,4 +150,13 @@ document.querySelectorAll("code.language-bash").forEach((code) => {
     });
 
     code.replaceChildren(fragment);
+}
+
+window.highlightBash = highlightBash;
+
+document.querySelectorAll("code.language-bash").forEach(highlightBash);
+document.addEventListener("bash-code-ready", (event) => {
+    if (event.target instanceof HTMLElement && event.target.matches("code.language-bash")) {
+        highlightBash(event.target);
+    }
 });

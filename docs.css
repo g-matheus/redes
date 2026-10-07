@@ -384,6 +384,21 @@ p {
     background: var(--code);
 }
 
+script-viewer {
+    display: block;
+}
+
+.script-viewer-loading,
+.script-viewer-error {
+    margin: 0;
+    padding: 14px 16px;
+    color: var(--muted);
+}
+
+.script-viewer-error {
+    color: var(--warning);
+}
+
 .code-head {
     display: flex;
     align-items: center;
