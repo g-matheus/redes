@@ -524,14 +524,9 @@ footer {
     }
 
     .sidebar {
+        display: none;
         position: static;
         order: -1;
-    }
-
-    .sidebar ul {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 4px 14px;
     }
 
     main {
