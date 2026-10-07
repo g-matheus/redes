@@ -506,6 +506,38 @@ pre code {
     font-size: .9rem;
 }
 
+.activity-resources {
+    display: grid;
+    gap: 18px;
+    margin-top: 16px;
+}
+
+.activity-resource {
+    display: grid;
+    justify-items: start;
+    gap: 3px;
+}
+
+.activity-resource-label {
+    color: var(--muted);
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.activity-resource-link {
+    font-size: 1.05rem;
+    font-weight: 650;
+    text-decoration: none;
+}
+
+.activity-resource p {
+    margin: 0;
+    color: var(--muted);
+    font-size: .9rem;
+}
+
 .page-navigation {
     display: flex;
     justify-content: space-between;
