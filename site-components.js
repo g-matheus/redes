@@ -16,6 +16,18 @@ function normalizePath(path) {
     return path.replace(/\/index\.html$/i, "").replace(/\/+$/, "") || "/";
 }
 
+function supportLocalFileNavigation() {
+    if (location.protocol !== "file:") return;
+
+    document.querySelectorAll("a[href]").forEach((link) => {
+        const target = new URL(link.href);
+        if (target.protocol === "file:" && target.pathname.endsWith("/")) {
+            target.pathname += "index.html";
+            link.href = target.href;
+        }
+    });
+}
+
 function addPointerBehavior(menu) {
     let openedByPointer = false;
 
@@ -130,3 +142,9 @@ class SiteFooter extends HTMLElement {
 
 customElements.define("site-header", SiteHeader);
 customElements.define("site-footer", SiteFooter);
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", supportLocalFileNavigation, { once: true });
+} else {
+    supportLocalFileNavigation();
+}
