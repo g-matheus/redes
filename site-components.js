@@ -8,7 +8,7 @@ const activitySteps = [
     ["Subdomínio 2", "atividade-1/deploy-subdomain2.html"],
 ];
 
-const githubIcon = `<svg class="github-icon" viewBox="0 0 16 16" aria-hidden="true">
+const githubIcon = `<svg class="github-icon" width="18" height="18" viewBox="0 0 16 16" aria-hidden="true" style="display:block;width:18px;height:18px;flex:0 0 18px;fill:#66d9ff">
     <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.65 7.65 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z" />
 </svg>`;
 
@@ -113,13 +113,13 @@ class SiteFooter extends HTMLElement {
         }).join("");
 
         this.innerHTML = `
-            <footer>
-                <div class="shell">
-                    <nav class="footer-navigation" aria-label="Navegação do rodapé">
+            <footer style="padding:22px 0 36px;border-top:1px solid var(--border);color:var(--muted);font-size:.86rem">
+                <div class="shell" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
+                    <nav class="footer-navigation" aria-label="Navegação do rodapé" style="display:grid;grid-auto-rows:min-content;gap:4px;justify-items:start">
                         <a href="${root}index.html"${normalizePath(new URL(`${root}index.html`, location.href).pathname) === currentPath ? ' aria-current="page"' : ""}>Início</a>
                         ${activityLinks}
                     </nav>
-                    <a href="https://github.com/g-matheus/redes" aria-label="Repositório do projeto no GitHub">
+                    <a href="https://github.com/g-matheus/redes" aria-label="Repositório do projeto no GitHub" style="display:inline-flex;align-items:center;gap:5px;text-decoration:none">
                         ${githubIcon}
                         GitHub
                     </a>
