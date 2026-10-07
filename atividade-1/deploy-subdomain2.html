@@ -40,7 +40,7 @@
                         um terminal nessa pasta.</p>
                 </section>
                 <section class="panel">
-                    <h2>2. Envie o template para a home do servidor</h2>
+                    <h2>2. Faça upload do template para o servidor</h2>
                     <p>Abra o terminal local dentro da pasta extraída do template. Antes de enviar, conecte-se ao
                         servidor com sua chave privada SSH e crie <code>~/template-subdomain2</code> dentro da home do
                         usuário <code>ubuntu</code>. Depois, substitua <code>CAMINHO_DA_CHAVE</code> pelo caminho local
@@ -66,14 +66,27 @@
                         template. O SCP não executa <code>sudo</code> remotamente, por isso os arquivos são enviados
                         primeiro para a home.
                     </p>
+                    <div class="code-card">
+                        <div class="code-head"><span>Copiar para o DocumentRoot</span><span class="tag">terminal
+                                remoto</span></div>
+                        <pre><code class="language-bash">sudo cp -a ~/template-subdomain2/. /var/www/template.m7.gs/</code></pre>
+                    </div>
+                    <p>O exemplo usa os valores atuais de <code>setup.conf</code>. Se o domínio ou o subdomínio forem
+                        diferentes, substitua <code>/var/www/template.m7.gs/</code> pelo
+                        <code>DocumentRoot</code> correspondente. O sufixo <code>/.</code> inclui também os arquivos
+                        ocultos que tenham sido enviados à pasta temporária.
+                    </p>
+                </section>
+                <section class="panel">
                     <h2>3. Defina o proprietário dos arquivos do site</h2>
                     <p>Depois de copiar os arquivos para o <code>DocumentRoot</code>, execute este comando no
                         terminal remoto do servidor. Com a configuração desta atividade
                         (<code>SUBDOMAIN2=template</code> e <code>DOMAIN_NAME=m7.gs</code>), o caminho do site é
-                        <code>/var/www/template.m7.gs</code>:</p>
+                        <code>/var/www/template.m7.gs</code>:
+                    </p>
                     <div class="code-card">
-                        <div class="code-head"><span>Alterar proprietário do site</span><span
-                                class="tag">terminal remoto</span></div>
+                        <div class="code-head"><span>Alterar proprietário do site</span><span class="tag">terminal
+                                remoto</span></div>
                         <pre><code class="language-bash">sudo chown -R www-data:www-data /var/www/template.m7.gs</code></pre>
                     </div>
                     <p>O comando altera quem é o proprietário dos arquivos e diretórios do site:</p>
@@ -103,7 +116,7 @@
                     <li><a href="apache2.html">apache2.sh</a></li>
                     <li><a href="tls-apache2.html">tls-apache2.sh</a></li>
                     <li><a href="mysql-php.html">mysql-php.sh</a></li>
-                    <li><a href="deploy-subdomain1.html">Publicação no subdomínio 1</a></li>
+                    <li><a href="deploy-subdomain1.html">deploy-subdomain1.sh</a></li>
                     <li><a href="deploy-subdomain2.html" aria-current="page">Publicação no subdomínio 2</a></li>
                 </ul>
             </aside>

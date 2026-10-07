@@ -28,22 +28,18 @@
     <main class="shell">
         <header class="hero"><span class="eyebrow">Atividade 1 • Subdomínio 1</span>
             <h1>Publicação no subdomínio 1</h1>
-            <p class="lead">Use o script para clonar o repositório definido em <code>setup.conf</code> no primeiro
-                subdomínio. O Git deve estar instalado no servidor antes da execução.</p>
+            <p class="lead">Faz o deploy do site definido no repositório remoto Git configurado
+                em <code>setup.conf</code>.</p>
         </header>
         <div class="layout">
             <article class="content">
                 <section class="panel">
-                    <h2>1. Publique o repositório no subdomínio 1</h2>
-                    <p>Edite <a href="setup-conf.html"><code>SUBDOMAIN1_SITE_REPO_URL</code></a> com a URL do
-                        repositório que deseja publicar. O script clona esse projeto em
-                        <code>/var/www/&lt;subdomínio&gt;.&lt;domínio&gt;</code>, o <code>DocumentRoot</code> do
-                        primeiro subdomínio.
-                    </p>
+                    <h2>Script</h2>
                     <div class="code-card">
                         <div class="code-head"><span>deploy-subdomain1.sh</span><button class="copy-button"
                                 type="button" data-copy-target="script-code">Copiar script</button></div>
-                        <script-viewer src="../assets/generate-scripts.sh" extract="deploy-subdomain1.sh" code-id="script-code"></script-viewer>
+                        <script-viewer src="../assets/generate-scripts.sh" extract="deploy-subdomain1.sh"
+                            code-id="script-code"></script-viewer>
                     </div>
                 </section>
                 <section class="panel">
@@ -57,9 +53,9 @@
                                 trap é uma ação definida para ocorrer diante de um evento, e este script não define essa
                                 trap), detecta variáveis não definidas (<code>-u</code>) e faz falhar pipelines se
                                 qualquer comando falhar (<code>pipefail</code>; pipeline é uma sequência ligada por
-                                <code>|</code>). <code>export DEBIAN_FRONTEND=noninteractive</code> informa ao APT —
-                                instalador de pacotes do Ubuntu — para não abrir perguntas interativas. O script usa
-                                essa configuração ao instalar Git.
+                                <code>|</code>). <code>export DEBIAN_FRONTEND=noninteractive</code> configura o
+                                ambiente para instalações não interativas de pacotes; este script não instala pacotes,
+                                então o Git precisa estar instalado previamente.
                             </p>
                         </div>
                         <div class="reference">
@@ -104,23 +100,39 @@
                             </p>
                         </div>
                         <div class="reference">
+                            <h3><code>rm -rf</code></h3>
+                            <p>Remove o diretório de destino e todo o seu conteúdo. Neste script, é executado antes do
+                                clone para substituir completamente a publicação anterior. A opção <code>-r</code>
+                                remove diretórios recursivamente e <code>-f</code> não solicita confirmação. Por isso,
+                                confira o domínio e faça backup antes de executar o script com <code>sudo</code>.</p>
+                        </div>
+                        <div class="reference">
                             <h3><code>git clone</code></h3>
                             <p><code>git</code> é o sistema de controle de versão; <code>clone</code> baixa uma cópia de
                                 um repositório e seu histórico. O primeiro argumento,
                                 <code>"$SUBDOMAIN1_SITE_REPO_URL"</code>, é a URL do repositório configurada em
                                 <code>setup.conf</code>; o segundo, <code>"$WEB_DIR"</code>, é a pasta de destino. As
                                 aspas preservam cada valor como um único argumento mesmo que contenha caracteres
-                                especiais. O diretório de destino deve ainda não existir ou
-                                estar vazio; Apache pode ter criado essa pasta previamente, caso em que ela precisa
-                                estar vazia.
+                                especiais. O diretório é recriado pelo clone após a remoção feita pelo comando
+                                anterior. O script não instala o Git; instale-o antes, se necessário, com
+                                <code>sudo apt-get install -y git</code>.
+                            </p>
+                        </div>
+                        <div class="reference">
+                            <h3><code>chown -R www-data:www-data</code></h3>
+                            <p>Altera recursivamente o proprietário e o grupo de todos os arquivos clonados para
+                                <code>www-data</code>, a conta usada pelo Apache no Ubuntu. Isso permite que o servidor
+                                web leia o conteúdo publicado.
                             </p>
                         </div>
                         <div class="reference">
                             <h3>Mensagem final</h3>
                             <p>O <code>echo</code> informa o endereço montado com <code>${FULL_DOMAIN}</code>.
-                                <code>http://</code> indica HTTP sem TLS; a porta padrão é 80. O VirtualHost criado por
-                                <code>apache2.sh</code> usa <code>/var/www/$FULL_DOMAIN</code> como
-                                <code>DocumentRoot</code>, isto é, a pasta que o Apache serve para esse subdomínio.
+                                A mensagem impressa pelo script usa <code>http://</code>. Depois da execução de
+                                <code>tls-apache2.sh</code>, o Certbot configura HTTPS e redirecionamento para HTTPS.
+                                O VirtualHost criado por <code>apache2.sh</code> usa
+                                <code>/var/www/$FULL_DOMAIN</code> como <code>DocumentRoot</code>, isto é, a pasta
+                                que o Apache serve para esse subdomínio.
                             </p>
                         </div>
                         <div class="reference">
