@@ -1,7 +1,7 @@
 :root {
     color-scheme: dark;
     --page: #000305;
-    --surface: #242c34d1;
+    --surface: #242c34;
     --surface-raised: #2d3740;
     --border: #414d58;
     --text: #e5e9ed;
@@ -116,16 +116,24 @@ a:hover {
 }
 
 .activity-menu[open] summary::after,
-.activity-menu:hover summary::after,
 .activity-menu:focus-within summary::after {
     transform: translateY(2px) rotate(225deg);
 }
 
 .activity-menu[open]>summary,
-.activity-menu:hover>summary,
 .activity-menu:focus-within>summary,
 .activity-menu.is-active>summary {
     color: var(--accent);
+}
+
+@media (hover: hover) {
+    .activity-menu:hover summary::after {
+        transform: translateY(2px) rotate(225deg);
+    }
+
+    .activity-menu:hover>summary {
+        color: var(--accent);
+    }
 }
 
 .activity-menu-items {
@@ -135,6 +143,7 @@ a:hover {
     right: 0;
     display: grid;
     min-width: 205px;
+    max-width: calc(100vw - 28px);
     padding: 8px;
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -144,11 +153,6 @@ a:hover {
 
 .activity-menu:not([open])>.activity-menu-items {
     display: none;
-}
-
-.activity-menu:hover>.activity-menu-items,
-.activity-menu:focus-within>.activity-menu-items {
-    display: grid;
 }
 
 .topbar nav .activity-menu-items a {
@@ -548,6 +552,16 @@ footer {
 
     .topbar nav {
         gap: 4px 13px;
+    }
+
+    .activity-menu {
+        display: block;
+        min-width: min(205px, calc(100vw - 76px));
+    }
+
+    .activity-menu-items {
+        width: min(205px, calc(100vw - 76px));
+        min-width: min(205px, calc(100vw - 76px));
     }
 
     .steps,
