@@ -1,5 +1,5 @@
 const activitySteps = [
-    ["Visão geral", "atividade-1/index.html"],
+    ["Visão geral", "atividade-1/"],
     ["Servidor", "atividade-1/server-hardening.html"],
     ["Apache", "atividade-1/apache2.html"],
     ["HTTPS", "atividade-1/tls-apache2.html"],
@@ -13,7 +13,7 @@ const githubIcon = `<svg class="github-icon" width="18" height="18" viewBox="0 0
 </svg>`;
 
 function normalizePath(path) {
-    return path.replace(/\/+$/, "") || "/";
+    return path.replace(/\/index\.html$/i, "").replace(/\/+$/, "") || "/";
 }
 
 function addPointerBehavior(menu) {
@@ -51,11 +51,11 @@ class SiteHeader extends HTMLElement {
     connectedCallback() {
         const root = this.getAttribute("root") || "./";
         const currentPath = normalizePath(location.pathname);
-        const rootPage = normalizePath(new URL(`${root}index.html`, location.href).pathname);
+        const rootPage = normalizePath(new URL(root, location.href).pathname);
         const activity1Pages = activitySteps.map(([, href]) =>
             normalizePath(new URL(`${root}${href}`, location.href).pathname));
-        const activity2Page = normalizePath(new URL(`${root}atividade-2/index.html`, location.href).pathname);
-        const activity3Page = normalizePath(new URL(`${root}atividade-3/index.html`, location.href).pathname);
+        const activity2Page = normalizePath(new URL(`${root}atividade-2/`, location.href).pathname);
+        const activity3Page = normalizePath(new URL(`${root}atividade-3/`, location.href).pathname);
         const activity = activity1Pages.includes(currentPath) ? "1"
             : currentPath === activity2Page ? "2"
                 : currentPath === activity3Page ? "3" : "";
@@ -68,9 +68,9 @@ class SiteHeader extends HTMLElement {
         this.innerHTML = `
             <div class="topbar">
                 <div class="shell topbar-inner">
-                    <a class="brand" href="${root}index.html"><span class="brand-mark">~/</span> Redes de Computadores</a>
+                    <a class="brand" href="${root}"><span class="brand-mark">~/</span> Redes de Computadores</a>
                     <nav aria-label="Navegação principal">
-                        <a href="${root}index.html"${currentPath === rootPage ? ' aria-current="page"' : ""}>Início</a>
+                        <a href="${root}"${currentPath === rootPage ? ' aria-current="page"' : ""}>Início</a>
                         <details class="activity-menu${activity ? " is-active" : ""}">
                             <summary>Atividades</summary>
                             <div class="activity-menu-items">
@@ -80,13 +80,13 @@ class SiteHeader extends HTMLElement {
                                 </section>
                                 <section class="activity-menu-section">
                                     <span class="activity-menu-heading">Atividade 2</span>
-                                    <a href="${root}atividade-2/index.html"${activity === "2" ? ' aria-current="page"' : ""}>
+                                    <a href="${root}atividade-2/"${activity === "2" ? ' aria-current="page"' : ""}>
                                         Abrir página <span class="activity-menu-status">Em breve</span>
                                     </a>
                                 </section>
                                 <section class="activity-menu-section">
                                     <span class="activity-menu-heading">Atividade 3</span>
-                                    <a href="${root}atividade-3/index.html"${activity === "3" ? ' aria-current="page"' : ""}>
+                                    <a href="${root}atividade-3/"${activity === "3" ? ' aria-current="page"' : ""}>
                                         Abrir página <span class="activity-menu-status">Em breve</span>
                                     </a>
                                 </section>
@@ -105,7 +105,7 @@ class SiteFooter extends HTMLElement {
         const root = this.getAttribute("root") || "./";
         const currentPath = normalizePath(location.pathname);
         const activityLinks = [1, 2, 3].map((number) => {
-            const href = `${root}atividade-${number}/index.html`;
+            const href = `${root}atividade-${number}/`;
             const current = normalizePath(new URL(href, location.href).pathname) === currentPath
                 ? ' aria-current="page"'
                 : "";
@@ -116,7 +116,7 @@ class SiteFooter extends HTMLElement {
             <footer style="padding:22px 0 36px;border-top:1px solid var(--border);color:var(--muted);font-size:.86rem">
                 <div class="shell" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px">
                     <nav class="footer-navigation" aria-label="Navegação do rodapé" style="display:grid;grid-auto-rows:min-content;gap:4px;justify-items:start">
-                        <a href="${root}index.html"${normalizePath(new URL(`${root}index.html`, location.href).pathname) === currentPath ? ' aria-current="page"' : ""}>Início</a>
+                        <a href="${root}"${normalizePath(new URL(root, location.href).pathname) === currentPath ? ' aria-current="page"' : ""}>Início</a>
                         ${activityLinks}
                     </nav>
                     <a href="https://github.com/g-matheus/redes" aria-label="Repositório do projeto no GitHub" style="display:inline-flex;align-items:center;gap:5px;text-decoration:none">
