@@ -4,7 +4,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Variáveis de domínio, subdomínios e repositório Git usadas pelos scripts da Atividade 1.">
+    <meta name="description"
+        content="Variáveis de domínio, subdomínios e repositório Git usadas pelos scripts da Atividade 1.">
     <title>setup.conf — Atividade 1</title>
     <link rel="stylesheet" href="../docs.css">
     <script src="../activity-menu.js" defer></script>
@@ -59,14 +60,16 @@ SUBDOMAIN1_SITE_REPO_URL="https://github.com/g-matheus/redes1.git"</code></pre>
                                 sem <code>http://</code>, <code>https://</code> ou caminho, por exemplo
                                 <code>exemplo.com</code>. Os scripts usam esse valor para nomear o VirtualHost (bloco de
                                 configuração de um site no Apache), montar o document root (pasta dos arquivos servidos)
-                                e solicitar o certificado TLS.</p>
+                                e solicitar o certificado TLS.
+                            </p>
                         </div>
                         <div class="reference">
                             <h3><code>SUBDOMAIN1</code> e <code>SUBDOMAIN2</code></h3>
                             <p>São os rótulos à esquerda do domínio, não incluem o domínio nem pontos. Se o domínio for
                                 <code>exemplo.com</code>, valores <code>blog</code> e <code>api</code> formam
                                 <code>blog.exemplo.com</code> e <code>api.exemplo.com</code>. Os mesmos nomes são usados
-                                nos VirtualHosts e no pedido de certificado.</p>
+                                nos VirtualHosts e no pedido de certificado.
+                            </p>
                         </div>
                         <div class="reference">
                             <h3><code>SUBDOMAIN1_SITE_REPO_URL</code></h3>
@@ -83,7 +86,8 @@ SUBDOMAIN1_SITE_REPO_URL="https://github.com/g-matheus/redes1.git"</code></pre>
                                 <code>A</code> associa um nome a um endereço IPv4; <code>@</code> costuma representar o
                                 domínio raiz no painel DNS; <code>www</code> é um nome adicional que este conjunto de
                                 scripts configura como alias do domínio principal. DNS deve estar propagado antes da
-                                emissão do certificado.</p>
+                                emissão do certificado.
+                            </p>
                         </div>
                         <div class="reference">
                             <h3>Permissão <code>640</code></h3>
@@ -92,7 +96,8 @@ SUBDOMAIN1_SITE_REPO_URL="https://github.com/g-matheus/redes1.git"</code></pre>
                                 (<code>2</code>) e execução (<code>1</code>): <code>6</code> = leitura + escrita;
                                 <code>4</code> = leitura; <code>0</code> = nenhum acesso. Portanto, <code>640</code>
                                 permite ao dono ler e editar, ao grupo ler, e não dá acesso aos demais. A configuração
-                                não precisa ser executável: os scripts a carregam com <code>source</code>.</p>
+                                não precisa ser executável: os scripts a carregam com <code>source</code>.
+                            </p>
                         </div>
                         <div class="reference">
                             <h3><code>setup.conf</code> e <code>.git</code></h3>
@@ -101,14 +106,14 @@ SUBDOMAIN1_SITE_REPO_URL="https://github.com/g-matheus/redes1.git"</code></pre>
                                 exemplo, <code>https://</code> é o protocolo usado para acessar o host GitHub,
                                 <code>github.com</code> é o domínio do serviço, as barras separam caminhos e
                                 <code>.git</code> identifica o endereço do repositório (não é um arquivo de
-                                configuração).</p>
+                                configuração).
+                            </p>
                         </div>
                     </div>
                 </section>
                 <aside class="callout">
                     <h2>Configure seus domínios</h2>
-                    <p>Use nomes reais e crie registros DNS para domínio, subdomínios e <code>www</code> antes de
-                        solicitar certificados.</p>
+                    <p>Use nomes reais e crie registros DNS para domínio, subdomínios e <code>www</code>.</p>
                 </aside>
                 <p><a href="index.html">← Voltar à Atividade 1 e à ordem de execução</a></p>
             </article>
