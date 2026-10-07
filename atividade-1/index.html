@@ -38,16 +38,19 @@
         <header class="hero">
             <span class="eyebrow">Atividade 1 • Servidor LAMP</span>
             <h1>Servidor web completo (LAMP) usando shell scripts</h1>
-            <p class="lead">Script preparado para a imagem Canonical Ubuntu 24.04, build 2026.09.18-0, na Oracle Cloud
-                Infrastructure (OCI).</p>
+            <p class="lead">Script criado para a imagem Canonical Ubuntu 24.04, build 2026.09.18-0, na Oracle Cloud
+                Infrastructure (OCI).
+                Outras versões de Linux e provedores de nuvem podem exigir ajustes.</p>
         </header>
 
         <div class="layout">
             <article class="content">
                 <section class="panel" id="visao-geral">
-                    <p class="muted">O <a href="#script-principal">script completo</a> cria cinco scripts e
-                        <code>setup.conf</code> em <code>~</code>. Consulte também as páginas de publicação dos dois
-                        subdomínios:
+                    <p class="muted">Execute o <a href="#script-principal">script completo</a>, ele criará outros cinco
+                        scripts <code>.sh</code> e um
+                        <code>setup.conf</code> em <code>~</code>. Após executar todos os scripts, você precisará
+                        publicar o site no segundo subdomínio manualmente, via SCP.
+                    </p>
                     </p>
                     <div class="file-grid">
                         <a class="file-link" href="setup-conf.html"><code>setup.conf</code><span>Domínio, subdomínio e
@@ -79,16 +82,17 @@
 
                 <section class="panel" id="executar">
                     <h2>Gere os scripts a partir da home (~)</h2>
-                    <p>Via SSH, crie <code>~/generate-scripts.sh</code> com o script abaixo. No nano, salve com
-                        <kbd>Ctrl</kbd>+<kbd>O</kbd> e saia com <kbd>Ctrl</kbd>+<kbd>X</kbd>.
+                    <p>Via SSH, crie <code>~/generate-scripts.sh</code> seguindo os passos abaixo:
                     </p>
                     <ol class="steps">
-                        <li><strong>Acesse a home</strong><span>Execute <code>cd ~</code>.</span></li>
-                        <li><strong>Crie o gerador</strong><span>Execute <code>nano generate-scripts.sh</code> e cole o
-                                script.</span></li>
-                        <li><strong>Gere os arquivos</strong><span>Execute <code>bash ~/generate-scripts.sh</code>, sem
-                                <code>sudo</code>.</span></li>
-                        <li><strong>Edite a configuração</strong><span>Atualize <code>~/setup.conf</code>.</span></li>
+                        <li><strong>Acesse a home</strong><span>Execute <code>cd ~</code></span></li>
+                        <li><strong>Crie o gerador</strong><span>Execute <code>nano generate-scripts.sh</code> e
+                                <code>cole o
+                                script completo</code></span></li>
+                        <li><strong>Gere os arquivos</strong><span>Execute
+                                <code>bash ~/generate-scripts.sh</code></span></li>
+                        <li><strong>Edite a configuração</strong><span>Atualize <code>~/setup.conf</code> com seus
+                                domínios e URL Git caso necessário.</span></li>
                     </ol>
                     <div class="code-card">
                         <div class="code-head"><span>Comandos para preparar os arquivos na home</span><span
@@ -96,8 +100,7 @@
                         <pre><code class="language-bash">cd ~
 nano generate-scripts.sh
 # Cole e salve o script gerador completo
-bash ~/generate-scripts.sh
-nano ~/setup.conf</code></pre>
+bash ~/generate-scripts.sh</code></pre>
                     </div>
                     <p>Depois, execute cada script gerado com <code>sudo</code>.</p>
                     <div class="code-card">
@@ -117,7 +120,6 @@ sudo ./deploy-subdomain1.sh</code></pre>
                     </p>
                     <p><code>server-hardening.sh</code>, <code>apache2.sh</code> e <code>mysql-php.sh</code>
                         reiniciam o servidor. Aguarde a máquina voltar e reconecte via SSH antes do próximo script.
-                        <code>tls-apache2.sh</code> apenas recarrega o Apache.
                     </p>
                 </section>
 
