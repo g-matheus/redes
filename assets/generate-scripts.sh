@@ -243,7 +243,7 @@ echo "-> Cloning repository to ${WEB_DIR}..."
 git clone "$SUBDOMAIN1_SITE_REPO_URL" "$WEB_DIR"
 echo "-> Setting permissions for ${WEB_DIR}..."
 chown -R www-data:www-data "$WEB_DIR"
-echo "==> Done! Application deployed at http://${FULL_DOMAIN}"
+echo "==> Done! Application deployed at https://${FULL_DOMAIN}"
 OUTER_EOF
 chmod 740 deploy-subdomain1.sh
 
